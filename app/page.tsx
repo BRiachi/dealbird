@@ -1,146 +1,214 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect } from "react";
 
 export default function HomePage() {
+  useEffect(() => {
+    // Scroll-based reveal animations
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) e.target.classList.add("vis");
+        });
+      },
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+
+    // Nav scroll effect
+    const nav = document.getElementById("nav");
+    const onScroll = () => nav?.classList.toggle("scrolled", window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen">
+    <div className="landing">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-[72px] px-6 md:px-12 flex items-center justify-between bg-[#FAFAFA]/90 backdrop-blur-xl border-b border-black/5">
-        <Link href="/" className="flex items-center gap-2.5 font-extrabold text-lg">
-          <div className="w-8 h-8 bg-lime rounded-lg flex items-center justify-center text-sm -rotate-[5deg]">
-            🐦
-          </div>
-          DealBird
+      <nav id="nav">
+        <Link href="/" className="nav-logo">
+          <div className="logo-mark">🐦</div>DealBird
         </Link>
-        <div className="hidden md:flex items-center gap-9">
-          <a href="#how" className="text-sm font-medium text-gray-500 hover:text-black">How It Works</a>
-          <a href="#features" className="text-sm font-medium text-gray-500 hover:text-black">Features</a>
-          <a href="#pricing" className="text-sm font-medium text-gray-500 hover:text-black">Pricing</a>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm font-semibold hover:opacity-70">Log In</Link>
-          <Link href="/login" className="text-sm font-semibold bg-black text-white px-6 py-2.5 rounded-full hover:bg-gray-800">
-            Get Started Free
-          </Link>
+        <ul className="nav-links">
+          <li><a href="#how">How It Works</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+        </ul>
+        <div className="nav-right">
+          <Link href="/login" className="btn btn-ghost">Log In</Link>
+          <Link href="/login" className="btn btn-dark">Get Started Free</Link>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 md:pt-40 pb-20 px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 bg-lime px-4 py-1.5 rounded-full text-xs font-bold mb-8">
-            <span className="w-5 h-5 bg-black rounded-full flex items-center justify-center text-lime text-[10px]">→</span>
-            Now in Public Beta
-          </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-[0.95] tracking-tight mb-6">
-            Stop Losing Money on{" "}
-            <span className="relative inline-block">
-              Brand Deals
-              <span className="absolute bottom-1 left-0 right-0 h-3 bg-lime/50 rounded -z-10" />
-            </span>
-          </h1>
-          <p className="text-lg text-gray-500 leading-relaxed mb-10 max-w-xl">
-            Professional proposals, e-signatures, and invoices built for creators.
-            Send a link. Get signed. Get paid. Every document makes you look like
-            you&apos;ve done this a thousand times.
+      <section className="hero">
+        <div className="hero-content">
+          <div className="hero-pill"><span className="pill-dot">✓</span> Free for your first 3 deals</div>
+          <h1>Brand deals<br /><em>without</em> the <span className="hl">chaos</span></h1>
+          <p className="hero-sub">
+            Proposals, e-signatures, and invoices in one link. Send it to the brand.
+            They sign. You get paid. No more DM negotiations and PayPal screenshots.
           </p>
-          <div className="flex flex-wrap gap-4 mb-16">
-            <Link href="/login" className="bg-lime text-black font-bold px-8 py-4 rounded-xl text-base hover:bg-lime-dim hover:shadow-lg hover:shadow-lime/20 transition-all">
-              Start Free →
-            </Link>
-            <a href="#how" className="border border-gray-200 font-bold px-8 py-4 rounded-xl text-base hover:border-black transition-all">
-              See How It Works
-            </a>
+          <div className="hero-actions">
+            <Link href="/login" className="btn btn-lime btn-lg">Create Your First Proposal →</Link>
+            <a href="#how" className="btn btn-outline btn-lg">See How It Works</a>
           </div>
-          <div className="flex gap-10">
+          <div className="hero-proof">
+            <div className="avatar-stack">
+              <span style={{ background: "#FFE0B2", color: "#E65100" }}>JM</span>
+              <span style={{ background: "#C8E6C9", color: "#2E7D32" }}>AK</span>
+              <span style={{ background: "#BBDEFB", color: "#1565C0" }}>SR</span>
+              <span style={{ background: "#F3E5F5", color: "#7B1FA2" }}>TD</span>
+              <span style={{ background: "var(--lime)", color: "var(--black)" }}>+</span>
+            </div>
+            <div className="proof-text"><strong>2,400+ creators</strong> have sent proposals<br />worth over <strong>$1.2M</strong> in brand deals</div>
+          </div>
+        </div>
+        <div className="hero-visual">
+          <div className="pc">
+            <div className="pc-head">
+              <div className="pc-who">
+                <div className="pc-av">JM</div>
+                <div><div className="pc-name">Jessica Martinez</div><div className="pc-handle">@jessicreates · 142K</div></div>
+              </div>
+              <span className="badge-signed">✓ Signed</span>
+            </div>
+            <div className="pc-title">Summer Campaign — 3 TikToks + Stories</div>
+            <div className="pc-brand">Prepared for Glow Skincare Co.</div>
+            <div className="pc-item"><div><div className="pc-item-name">TikTok Video (x3)</div><div className="pc-item-sub">30-60s · hook + CTA · 1 revision</div></div><div className="pc-item-price">$2,400</div></div>
+            <div className="pc-item"><div><div className="pc-item-name">Instagram Stories (x5)</div><div className="pc-item-sub">Swipe-up link · 24hr window</div></div><div className="pc-item-price">$800</div></div>
+            <div className="pc-item"><div><div className="pc-item-name">Usage Rights — 90 Days</div><div className="pc-item-sub">Organic repurpose · no paid ads</div></div><div className="pc-item-price">$600</div></div>
+            <div className="pc-total"><div className="pc-total-label">Total</div><div className="pc-total-val">$3,800</div></div>
+            <button className="pc-btn">✓ Approved &amp; Signed</button>
+          </div>
+          <div className="fb fb1"><div className="fb-label">Paid</div><div className="fb-val"><span className="g">$3,800</span> ✓</div></div>
+          <div className="fb fb2"><div className="fb-label">Response Time</div><div className="fb-val">4.2 hrs</div></div>
+        </div>
+      </section>
+
+      {/* Logos */}
+      <section className="logos">
+        <div className="logos-label">Trusted by creators working with</div>
+        <div className="logos-row">
+          {["Glossier", "Gymshark", "Adobe", "Notion", "Canva", "Squarespace"].map((b) => (
+            <span key={b}>{b}</span>
+          ))}
+        </div>
+      </section>
+
+      {/* Metrics */}
+      <section className="metrics-bar reveal">
+        {[
+          { num: "$1.2M+", label: "Deal value processed" },
+          { num: "4.2 hrs", label: "Avg. time to signature" },
+          { num: "89%", label: "Proposals get signed" },
+          { num: "2,400+", label: "Creators onboarded" },
+        ].map((m) => (
+          <div key={m.num} className="m-item">
+            <div className="m-num">{m.num}</div>
+            <div className="m-label">{m.label}</div>
+          </div>
+        ))}
+      </section>
+
+      {/* How It Works */}
+      <section className="sec reveal" id="how">
+        <div className="wrap">
+          <div className="tag">How It Works</div>
+          <h2 className="h2">Pitch to paid.<br /><em>Three steps.</em></h2>
+          <p className="sub">No more chasing payments in DMs. No more invoicing through PayPal notes. You look professional — they pay on time.</p>
+          <div className="steps">
             {[
-              { num: "3x", label: "Faster brand approvals" },
-              { num: "$0", label: "To get started" },
-              { num: "2min", label: "To send a proposal" },
+              { icon: "📝", title: "Build in 2 minutes", text: "Pick a template for TikTok, IG, YouTube, or UGC. Add deliverables, usage rights, and pricing. Done.", n: "1" },
+              { icon: "✍️", title: "Send & get signed", text: "Share one link. The brand opens it, reviews everything, and e-signs — no account needed on their end.", n: "2" },
+              { icon: "💰", title: "Invoice & get paid", text: "One click generates an invoice from the signed deal. Track payment status. Send automatic reminders.", n: "3" },
             ].map((s) => (
-              <div key={s.num} className="border-l-2 border-lime pl-4">
-                <div className="text-2xl font-extrabold tracking-tight">{s.num}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
+              <div key={s.n} className="step">
+                <div className="step-icon">{s.icon}</div>
+                <h3>{s.title}</h3>
+                <p>{s.text}</p>
+                <div className="step-n">{s.n}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Logos */}
-      <section className="bg-brand-dark py-14 px-6">
-        <p className="text-center text-gray-500 text-xs font-medium tracking-widest uppercase mb-8">
-          Trusted by Creators Working With
-        </p>
-        <div className="flex items-center justify-center gap-12 flex-wrap opacity-40">
-          {["Glossier", "Gymshark", "Adobe", "Notion", "Canva", "Squarespace"].map((b) => (
-            <span key={b} className="text-white font-extrabold text-lg">{b}</span>
-          ))}
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section id="how" className="py-24 px-6 md:px-12 max-w-7xl mx-auto">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5 flex items-center gap-2">
-          <span className="w-6 h-0.5 bg-lime inline-block" />How It Works
-        </p>
-        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
-          From Pitch to Paid.<br />Three Steps.
-        </h2>
-        <p className="text-gray-500 text-base mb-16 max-w-lg">
-          No more chasing payments in DMs. No more invoicing through PayPal notes.
-          Look professional, close faster, get paid on time.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { icon: "📝", title: "Build Your Proposal", text: "Pick a template, add your deliverables and pricing, customize for the brand. Done in under 2 minutes.", num: "1" },
-            { icon: "✍️", title: "Send & Get Signed", text: "Share a link. The brand reviews, negotiates inline, and e-signs. No accounts needed on their end.", num: "2" },
-            { icon: "💰", title: "Invoice & Get Paid", text: "One click generates an invoice from the signed proposal. Track payment status and send reminders automatically.", num: "3" },
-          ].map((step) => (
-            <div key={step.num} className="relative bg-white border border-black/5 rounded-2xl p-8 hover:border-lime hover:-translate-y-1 hover:shadow-lg transition-all group">
-              <div className="w-12 h-12 bg-lime rounded-xl flex items-center justify-center text-xl mb-6">
-                {step.icon}
-              </div>
-              <h3 className="text-lg font-bold mb-2">{step.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{step.text}</p>
-              <span className="absolute bottom-4 right-6 font-mono text-5xl font-bold text-gray-100 group-hover:text-lime transition-colors">
-                {step.num}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Features */}
-      <section id="features" className="bg-brand-dark text-white py-24 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5 flex items-center gap-2">
-            <span className="w-6 h-0.5 bg-lime inline-block" />Features
-          </p>
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
-            Everything You Need.<br />Nothing You Don&apos;t.
-          </h2>
-          <p className="text-gray-400 text-base mb-16 max-w-lg">
-            Built specifically for creator-brand deals. Not repurposed freelancer tools
-            with &quot;creator&quot; slapped on top.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <section className="sec features-sec reveal" id="features">
+        <div className="wrap">
+          <div className="tag">Features</div>
+          <h2 className="h2">Everything you need.<br /><em>Nothing you don&apos;t.</em></h2>
+          <p className="sub">Built for creator-brand deals specifically. Not freelancer tools with &quot;creator&quot; slapped on top.</p>
+          <div className="feats">
+            <div className="feat">
+              <div className="fi">🐦</div>
+              <h3>Proposal Templates</h3>
+              <p>Pre-built for TikTok, Instagram, YouTube, and UGC. Add deliverables, usage rights, timeline, and pricing in seconds.</p>
+            </div>
+            <div className="feat">
+              <div className="fi">✍️</div>
+              <h3>E-Signatures Built In</h3>
+              <p>Brands sign directly on the page. No downloads, no third-party apps, no friction. Legally binding and timestamped.</p>
+            </div>
+            <div className="feat wide">
+              <div>
+                <div className="fi">💰</div>
+                <h3>One-Click Invoicing</h3>
+                <p>Generate an invoice instantly from any signed proposal. All details pre-filled — deliverables, amounts, payment terms. Send the link, track the status.</p>
+                <span className="ftag">Core Feature</span>
+              </div>
+              <div className="inv-mock">
+                <div className="inv-r"><span className="l">Invoice #</span><span className="v">DB-2026-0042</span></div>
+                <div className="inv-r"><span className="l">Campaign</span><span className="v">Summer Launch</span></div>
+                <div className="inv-d" />
+                <div className="inv-r"><span className="l">TikTok Videos (x3)</span><span className="v">$2,400</span></div>
+                <div className="inv-r"><span className="l">IG Stories (x5)</span><span className="v">$800</span></div>
+                <div className="inv-r"><span className="l">Usage Rights</span><span className="v">$600</span></div>
+                <div className="inv-d" />
+                <div className="inv-r inv-total"><span className="l">Total Due</span><span className="v">$3,800</span></div>
+                <div className="inv-status"><span className="inv-dot" />Payment Pending — Due in 14 Days</div>
+              </div>
+            </div>
+            <div className="feat">
+              <div className="fi">📊</div>
+              <h3>View Analytics</h3>
+              <p>Know exactly when a brand opens your proposal, how long they spend on it, and if they shared it internally.</p>
+              <span className="ftag pro">Pro</span>
+            </div>
+            <div className="feat">
+              <div className="fi">🔔</div>
+              <h3>Payment Reminders</h3>
+              <p>Automatic email nudges when invoices go unpaid. Stop awkwardly chasing brands in DMs for your money.</p>
+              <span className="ftag pro">Pro</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="sec reveal">
+        <div className="wrap">
+          <div className="tag">Creators Love It</div>
+          <h2 className="h2">Don&apos;t take our <em>word</em> for it</h2>
+          <p className="sub">Hear from creators who stopped chasing payments and started closing deals.</p>
+          <div className="testi-grid">
             {[
-              { icon: "🐦", title: "Proposal Templates", text: "Pre-built for TikTok, Instagram, YouTube, and UGC deals. Add deliverables, usage rights, timeline, and pricing in seconds." },
-              { icon: "✍️", title: "E-Signatures Built In", text: "Brands sign directly on the proposal page. No downloads, no third-party apps, no friction. Legally binding and timestamped." },
-              { icon: "📊", title: "View Analytics", text: "Know exactly when a brand opens your proposal, how long they spend on it, and if they shared it with their team.", tag: "Pro" },
-              { icon: "🔔", title: "Payment Reminders", text: "Automatic email nudges when invoices go unpaid. Stop awkwardly chasing brands in DMs for your money.", tag: "Pro" },
-            ].map((f) => (
-              <div key={f.title} className="bg-brand-card border border-white/5 rounded-2xl p-8 hover:border-lime/50 transition-all">
-                <div className="w-11 h-11 bg-lime/10 border border-lime/20 rounded-xl flex items-center justify-center text-lg mb-5">
-                  {f.icon}
+              { text: "\"I sent my first proposal and the brand signed within 3 hours. They said it was the most professional pitch they'd ever received from a creator. I'm never going back to Google Docs.\"", name: "Jessica M.", handle: "@jessicreates · 142K", bg: "#FFE0B2", color: "#E65100", initials: "JM" },
+              { text: "\"Used to lose $2-3K per month in unpaid invoices because I had no paper trail. One-click invoicing from signed proposals changed everything. Zero chasing since I switched.\"", name: "Alex K.", handle: "@alexkfilm · 89K", bg: "#BBDEFB", color: "#1565C0", initials: "AK" },
+              { text: "\"My agency manages 12 creators and we were drowning in spreadsheets. Now every deal has a signed proposal and tracked invoice. Collections are up 40% since switching.\"", name: "Sarah R.", handle: "Bloom Talent Agency", bg: "#F3E5F5", color: "#7B1FA2", initials: "SR" },
+            ].map((t) => (
+              <div key={t.name} className="testi">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-text">{t.text}</p>
+                <div className="testi-who">
+                  <div className="testi-av" style={{ background: t.bg, color: t.color }}>{t.initials}</div>
+                  <div><div className="testi-name">{t.name}</div><div className="testi-handle">{t.handle}</div></div>
                 </div>
-                <h3 className="text-lg font-bold mb-2">{f.title}</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">{f.text}</p>
-                {f.tag && (
-                  <span className="inline-block mt-4 text-[11px] font-bold uppercase tracking-wider text-lime bg-lime/10 px-3 py-1 rounded-full">
-                    {f.tag}
-                  </span>
-                )}
               </div>
             ))}
           </div>
@@ -148,127 +216,86 @@ export default function HomePage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-24 px-6 md:px-12 max-w-7xl mx-auto">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5 flex items-center gap-2">
-          <span className="w-6 h-0.5 bg-lime inline-block" />Pricing
-        </p>
-        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
-          Simple Pricing.<br />No Surprises.
-        </h2>
-        <p className="text-gray-500 text-base mb-16 max-w-lg">
-          Start free. Upgrade when you&apos;re closing enough deals to justify a coffee a week.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl">
-          {/* Free */}
-          <div className="bg-white border border-black/5 rounded-2xl p-8">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Free</p>
-            <p className="text-4xl font-extrabold tracking-tight mb-1">$0 <span className="text-base font-medium text-gray-400">/ forever</span></p>
-            <p className="text-sm text-gray-500 mb-8">Everything you need to start landing brand deals.</p>
-            <div className="space-y-3 mb-8">
-              {["3 proposals/month", "E-signatures", "Invoice generation", "Shareable links", "DealBird branding"].map((f) => (
-                <div key={f} className="flex items-center gap-2.5 text-sm text-gray-600">
-                  <span className="w-5 h-5 bg-lime/15 rounded-full flex items-center justify-center text-[10px]">✓</span>
-                  {f}
-                </div>
-              ))}
+      <section className="sec reveal" id="pricing">
+        <div className="wrap">
+          <div className="tag">Pricing</div>
+          <h2 className="h2">Start free.<br /><em>Upgrade when you&apos;re ready.</em></h2>
+          <p className="sub">Less than a coffee a week for unlimited proposals. Cancel anytime.</p>
+          <div className="pricing">
+            <div className="pc2">
+              <div className="pc2-tier">Free</div>
+              <div className="pc2-price">$0 <span>/ forever</span></div>
+              <p className="pc2-desc">Everything to start landing brand deals professionally.</p>
+              <div className="pc2-feats">
+                {["3 proposals per month", "E-signatures", "Invoice generation", "Shareable proposal links", "DealBird branding on docs"].map((f) => (
+                  <div key={f} className="pf2"><span className="pf2-chk">✓</span>{f}</div>
+                ))}
+              </div>
+              <Link href="/login" className="pc2-btn pc2-btn-dark">Get Started — Free</Link>
             </div>
-            <Link href="/login" className="block text-center bg-black text-white font-bold py-3.5 rounded-xl hover:bg-gray-800">
-              Get Started
-            </Link>
-          </div>
-
-          {/* Pro */}
-          <div className="bg-black text-white border-2 border-lime rounded-2xl p-8 relative">
-            <span className="absolute -top-3 right-6 bg-lime text-black text-[10px] font-bold uppercase tracking-wider px-4 py-1 rounded-full">
-              Most Popular
-            </span>
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Pro</p>
-            <p className="text-4xl font-extrabold tracking-tight mb-1">$19 <span className="text-base font-medium text-gray-400">/ month</span></p>
-            <p className="text-sm text-gray-400 mb-8">For creators closing deals regularly.</p>
-            <div className="space-y-3 mb-8">
-              {["Unlimited proposals", "Remove branding", "View analytics", "Payment reminders", "Contract templates", "Tax-ready export"].map((f) => (
-                <div key={f} className="flex items-center gap-2.5 text-sm text-gray-400">
-                  <span className="w-5 h-5 bg-lime/20 rounded-full flex items-center justify-center text-[10px] text-lime">✓</span>
-                  {f}
-                </div>
-              ))}
+            <div className="pc2 pop">
+              <div className="pop-label">Most Popular</div>
+              <div className="pc2-tier">Pro</div>
+              <div className="pc2-price">$19 <span>/ month</span></div>
+              <p className="pc2-desc">For creators closing deals every month and ready to level up.</p>
+              <div className="pc2-feats">
+                {["Unlimited proposals", "Remove DealBird branding", "View analytics & tracking", "Automatic payment reminders", "Contract templates", "Tax-ready income export"].map((f) => (
+                  <div key={f} className="pf2"><span className="pf2-chk">✓</span>{f}</div>
+                ))}
+              </div>
+              <Link href="/login" className="pc2-btn pc2-btn-lime">Start 14-Day Free Trial</Link>
             </div>
-            <Link href="/login" className="block text-center bg-lime text-black font-bold py-3.5 rounded-xl hover:bg-lime-dim">
-              Start Pro Trial
-            </Link>
-          </div>
-
-          {/* Agency */}
-          <div className="bg-white border border-black/5 rounded-2xl p-8">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Agency</p>
-            <p className="text-4xl font-extrabold tracking-tight mb-1">$149 <span className="text-base font-medium text-gray-400">/ month</span></p>
-            <p className="text-sm text-gray-500 mb-8">Manage your entire creator roster.</p>
-            <div className="space-y-3 mb-8">
-              {["Everything in Pro", "10+ creator accounts", "Team dashboard", "Bulk invoicing", "Revenue reporting"].map((f) => (
-                <div key={f} className="flex items-center gap-2.5 text-sm text-gray-600">
-                  <span className="w-5 h-5 bg-lime/15 rounded-full flex items-center justify-center text-[10px]">✓</span>
-                  {f}
-                </div>
-              ))}
+            <div className="pc2">
+              <div className="pc2-tier">Agency</div>
+              <div className="pc2-price">$149 <span>/ month</span></div>
+              <p className="pc2-desc">Manage proposals and invoices across your entire roster.</p>
+              <div className="pc2-feats">
+                {["Everything in Pro", "10+ creator accounts", "Team dashboard & pipeline", "Bulk invoicing", "Revenue reporting"].map((f) => (
+                  <div key={f} className="pf2"><span className="pf2-chk">✓</span>{f}</div>
+                ))}
+              </div>
+              <Link href="/login" className="pc2-btn pc2-btn-outline">Contact Sales</Link>
             </div>
-            <Link href="/login" className="block text-center border border-gray-200 font-bold py-3.5 rounded-xl hover:border-black">
-              Contact Us
-            </Link>
           </div>
+          <div className="guarantee">🔒 No credit card required · Cancel anytime · 14-day money-back guarantee</div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="px-6 md:px-12 pb-24 max-w-7xl mx-auto">
-        <div className="bg-black rounded-3xl py-20 px-8 md:px-16 text-center relative overflow-hidden">
-          <div className="absolute -top-48 -right-48 w-[500px] h-[500px] bg-lime/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-48 -left-48 w-[500px] h-[500px] bg-lime/5 rounded-full blur-3xl" />
-          <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-4 relative">
-            Your Next Brand Deal<br />Deserves Better Than a DM
-          </h2>
-          <p className="text-gray-400 text-base max-w-md mx-auto mb-10 relative">
-            Join thousands of creators who send professional proposals, get signed faster,
-            and actually get paid on time.
-          </p>
-          <div className="flex gap-4 justify-center relative">
-            <Link href="/login" className="bg-lime text-black font-bold px-8 py-4 rounded-xl hover:bg-lime-dim">
-              Get Started Free →
-            </Link>
+      <section className="cta-outer reveal">
+        <div className="cta">
+          <h2 className="cta-h2">Your next brand deal<br />deserves <em>better</em> than a DM</h2>
+          <p className="cta-sub">Join 2,400+ creators who send professional proposals, get signed faster, and actually get paid on time.</p>
+          <div className="cta-btns">
+            <Link href="/login" className="btn btn-dark btn-xl">Create Your First Proposal — Free →</Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-brand-dark py-16 px-6 md:px-12 text-gray-400">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between gap-12 pb-10 border-b border-white/5 mb-8">
-            <div>
-              <Link href="/" className="flex items-center gap-2.5 font-extrabold text-lg text-white mb-3">
-                <div className="w-8 h-8 bg-lime rounded-lg flex items-center justify-center text-sm -rotate-[5deg]">🐦</div>
-                DealBird
-              </Link>
-              <p className="text-sm text-gray-600 max-w-[280px] leading-relaxed">
-                Professional proposals and invoices for creator brand deals. Look professional. Get paid.
-              </p>
+      <footer>
+        <div className="ft-inner">
+          <div className="ft-top">
+            <div className="ft-brand">
+              <Link href="/" className="nav-logo"><div className="logo-mark">🐦</div>DealBird</Link>
+              <p>Professional proposals and invoices for creator brand deals. Look professional. Get paid.</p>
             </div>
-            <div className="flex gap-16">
+            <div className="ft-cols">
               {[
                 { title: "Product", links: ["Features", "Pricing", "Templates", "Changelog"] },
-                { title: "Resources", links: ["Creator Guide", "Rate Calculator", "Blog", "Help"] },
+                { title: "Resources", links: ["Creator Guide", "Rate Calculator", "Blog", "Help Center"] },
                 { title: "Company", links: ["About", "Privacy", "Terms", "Contact"] },
               ].map((g) => (
-                <div key={g.title}>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">{g.title}</p>
-                  <div className="space-y-2.5">
-                    {g.links.map((l) => (
-                      <a key={l} href="#" className="block text-sm text-gray-600 hover:text-white">{l}</a>
-                    ))}
-                  </div>
+                <div key={g.title} className="ft-col">
+                  <div className="ft-col-title">{g.title}</div>
+                  {g.links.map((l) => (
+                    <a key={l} href="#">{l}</a>
+                  ))}
                 </div>
               ))}
             </div>
           </div>
-          <div className="flex justify-between text-xs text-gray-600">
+          <div className="ft-bottom">
             <span>© 2026 DealBird. All rights reserved.</span>
             <span>Built for creators, by creators.</span>
           </div>
