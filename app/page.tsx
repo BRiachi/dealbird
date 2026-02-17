@@ -58,14 +58,16 @@ export default function HomePage() {
             <a href="#how" className="btn btn-outline btn-lg">See How It Works</a>
           </div>
           <div className="hero-proof">
-            <div className="avatar-stack">
-              <span style={{ background: "#FFE0B2", color: "#E65100" }}>JM</span>
-              <span style={{ background: "#C8E6C9", color: "#2E7D32" }}>AK</span>
-              <span style={{ background: "#BBDEFB", color: "#1565C0" }}>SR</span>
-              <span style={{ background: "#F3E5F5", color: "#7B1FA2" }}>TD</span>
-              <span style={{ background: "var(--lime)", color: "var(--black)" }}>+</span>
+            <img src="/creators.png" alt="Creator avatars" className="hero-proof-avatars" />
+            <div className="hero-proof-rating">
+              <div className="hero-proof-score">4.9/5 Excellent</div>
+              <div className="hero-proof-stars">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="star-badge">★</span>
+                ))}
+              </div>
+              <div className="hero-proof-count">2,400+ creators trust DealBird</div>
             </div>
-            <div className="proof-text"><strong>2,400+ creators</strong> have sent proposals<br />worth over <strong>$1.2M</strong> in brand deals</div>
           </div>
         </div>
         <div className="hero-visual">
