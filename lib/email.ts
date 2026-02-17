@@ -89,5 +89,57 @@ export const emailTemplates = {
         Sent via <strong>DealBird</strong> on behalf of ${creatorName}
       </div>
     </div>
+  `,
+
+  dealSignedCreator: (
+    creatorName: string,
+    brandName: string,
+    proposalTitle: string,
+    proposalUrl: string
+  ) => `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #333;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo.png" alt="DealBird" style="width: 48px; border-radius: 12px;">
+      </div>
+      <div style="background: #fff; border: 1px solid #eee; border-radius: 16px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <h2 style="margin: 0 0 20px; font-size: 24px; color: #111;">Deal Signed! 🎉</h2>
+        <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 24px;">
+          Hi ${creatorName},<br><br>
+          Great news! <strong>${brandName}</strong> has just signed your proposal: <strong>${proposalTitle}</strong>.
+        </p>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${proposalUrl}" style="background: #000; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">View Signed Deal</a>
+        </div>
+        <p style="font-size: 14px; color: #888; text-align: center;">
+          Next step: Send them an invoice from your dashboard!
+        </p>
+      </div>
+    </div>
+  `,
+
+  dealSignedBrand: (
+    brandName: string,
+    creatorName: string,
+    proposalTitle: string,
+    proposalUrl: string
+  ) => `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #333;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo.png" alt="DealBird" style="width: 48px; border-radius: 12px;">
+      </div>
+      <div style="background: #fff; border: 1px solid #eee; border-radius: 16px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <h2 style="margin: 0 0 20px; font-size: 24px; color: #111;">You signed the deal!</h2>
+        <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 24px;">
+          Hi ${brandName},<br><br>
+          This email confirms you have successfully signed the proposal <strong>${proposalTitle}</strong> from ${creatorName}.
+        </p>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${proposalUrl}" style="background: #f3f4f6; color: #000; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">View Signed Document</a>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 30px; color: #999; font-size: 12px;">
+        Sent via <strong>DealBird</strong>
+      </div>
+    </div>
   `
 };

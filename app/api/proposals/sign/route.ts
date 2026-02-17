@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendEmail, emailTemplates } from "@/lib/email";
 
 // POST /api/proposals/sign - Brand signs a proposal (public route)
 export async function POST(req: NextRequest) {
@@ -32,6 +33,49 @@ export async function POST(req: NextRequest) {
     },
     include: { items: true },
   });
+
+  // Send emails
+  try {
+    const creator = await prisma.user.findUnique({
+      where: { id: proposal.userId },
+      select: { name: true, email: true },
+    });
+
+    if (creator?.email) {
+      const proposalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/p/${slug}`;
+
+      // Email to Creator
+      await sendEmail({
+        to: creator.email,
+        replyTo: "noreply@dealbird.ai",
+        subject: `Deal Signed: ${proposal.title}`,
+        html: emailTemplates.dealSignedCreator(
+          creator.name || "Creator",
+          proposal.brand,
+          proposal.title,
+          proposalUrl
+        ),
+      });
+
+      // Email to Brand (if email exists)
+      if (proposal.brandEmail) {
+        await sendEmail({
+          to: proposal.brandEmail,
+          replyTo: creator.email,
+          subject: `You signed the deal: ${proposal.title}`,
+          html: emailTemplates.dealSignedBrand(
+            proposal.brand,
+            creator.name || "Creator",
+            proposal.title,
+            proposalUrl
+          ),
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Failed to send signing emails:", err);
+    // Don't block the response if email fails
+  }
 
   return NextResponse.json(updated);
 }
