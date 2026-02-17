@@ -12,10 +12,6 @@ export function getStripe() {
   return _stripe;
 }
 
-export const stripe = typeof process !== "undefined" && process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia", typescript: true })
-  : (null as unknown as Stripe);
-
 export const PLANS = {
   free: {
     name: "Free",
@@ -51,7 +47,28 @@ export const PLANS = {
   },
 };
 
-export async function createCheckoutSession(userId: string, email: string, priceId: string) {
+export async function createCheckoutSession(userId: string, email: string, priceOrProductId: string) {
+  const stripe = getStripe();
+
+  // If a product ID was passed, look up its default price
+  let priceId = priceOrProductId;
+  if (priceOrProductId.startsWith("prod_")) {
+    const product = await stripe.products.retrieve(priceOrProductId);
+    if (product.default_price) {
+      priceId = typeof product.default_price === "string"
+        ? product.default_price
+        : product.default_price.id;
+    } else {
+      // List prices for this product and take the first active one
+      const prices = await stripe.prices.list({ product: priceOrProductId, active: true, limit: 1 });
+      if (prices.data.length > 0) {
+        priceId = prices.data[0].id;
+      } else {
+        throw new Error(`No active price found for product ${priceOrProductId}`);
+      }
+    }
+  }
+
   const session = await stripe.checkout.sessions.create({
     customer_email: email,
     metadata: { userId },
@@ -66,9 +83,11 @@ export async function createCheckoutSession(userId: string, email: string, price
 }
 
 export async function createPortalSession(customerId: string) {
+  const stripe = getStripe();
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
     return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
   });
   return session;
 }
+
