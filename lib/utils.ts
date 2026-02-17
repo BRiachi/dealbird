@@ -78,7 +78,8 @@ export function calculateTotal(items: { price: number }[]): number {
 }
 
 export function canCreateProposal(plan: string | null, currentCount: number): boolean {
-  if (plan === "PRO" || plan === "CREATOR") return true;
+  const p = (plan || "").toUpperCase();
+  if (p === "PRO" || p === "CREATOR" || p === "AGENCY") return true;
   return currentCount < 3; // Free tier: 3 proposals/month
 }
 
