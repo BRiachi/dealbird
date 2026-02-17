@@ -92,15 +92,11 @@ body {
 .logo-mark {
   width: 30px;
   height: 30px;
-  background: var(--lime);
   border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
   transform: rotate(-6deg);
   box-shadow: 0 2px 8px rgba(200, 255, 0, 0.25);
   transition: transform 0.3s;
+  object-fit: cover;
 }
 
 .nav-logo:hover .logo-mark {

@@ -30,7 +30,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
           <div className="flex items-start justify-between mb-8">
             <div>
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-9 h-9 bg-[#C8FF00] rounded-lg flex items-center justify-center text-sm -rotate-[5deg]">🐦</div>
+                <img src="/logo.png" alt="DealBird" className="w-9 h-9 rounded-lg -rotate-[5deg]" />
                 <span className="font-extrabold text-lg">DealBird</span>
               </div>
               <h2 className="text-2xl font-extrabold tracking-tight mb-1">Invoice</h2>
@@ -83,7 +83,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
             </div>
           )}
 
-          <div className="text-center mt-7 text-xs text-gray-400">Powered by <strong className="text-black">🐦 DealBird</strong></div>
+          <div className="text-center mt-7 text-xs text-gray-400">Powered by <strong className="text-black"><img src="/logo.png" alt="" style={{ width: '14px', height: '14px', borderRadius: '3px', display: 'inline', verticalAlign: '-2px', marginRight: '3px' }} />DealBird</strong></div>
         </div>
       </div>
     </div>

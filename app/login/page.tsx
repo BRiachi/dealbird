@@ -31,7 +31,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl justify-center mb-10">
-          <div className="w-9 h-9 bg-[#C8FF00] rounded-lg flex items-center justify-center text-base -rotate-[5deg]">🐦</div>
+          <img src="/logo.png" alt="DealBird" className="w-9 h-9 rounded-lg -rotate-[5deg]" />
           DealBird
         </Link>
 

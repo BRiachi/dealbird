@@ -46,7 +46,7 @@ export default async function PublicProposalPage({ params }: Props) {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ slug: params.id }),
-  }).catch(() => {});
+  }).catch(() => { });
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] py-12 px-4">
@@ -156,7 +156,7 @@ export default async function PublicProposalPage({ params }: Props) {
                 href={process.env.NEXT_PUBLIC_APP_URL}
                 className="font-bold text-black hover:underline"
               >
-                🐦 DealBird
+                <img src="/logo.png" alt="" style={{ width: '14px', height: '14px', borderRadius: '3px', display: 'inline', verticalAlign: '-2px', marginRight: '3px' }} />DealBird
               </a>{" "}
               —{" "}
               <a

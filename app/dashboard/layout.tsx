@@ -16,7 +16,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-[#FAFAFA]">
       <nav className="sticky top-0 z-50 h-16 px-6 flex items-center justify-between bg-white/90 backdrop-blur-xl border-b border-black/[0.06]">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-[#C8FF00] rounded-lg flex items-center justify-center text-sm -rotate-[5deg]">🐦</div>
+          <img src="/logo.png" alt="DealBird" className="w-8 h-8 rounded-lg -rotate-[5deg]" />
           <span className="font-extrabold text-lg tracking-tight">DealBird</span>
         </Link>
         <DashboardNav />

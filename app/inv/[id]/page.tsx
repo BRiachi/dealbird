@@ -34,9 +34,7 @@ export default async function PublicInvoicePage({ params }: Props) {
             <div className="flex justify-between items-start mb-10">
               <div>
                 <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-9 h-9 bg-[#C8FF00] rounded-lg flex items-center justify-center text-base -rotate-[5deg]">
-                    🐦
-                  </div>
+                  <img src="/logo.png" alt="DealBird" className="w-9 h-9 rounded-lg -rotate-[5deg]" />
                   <span className="font-extrabold text-lg">DealBird</span>
                 </div>
                 <h1 className="text-2xl font-extrabold tracking-tight mb-1">
@@ -45,13 +43,12 @@ export default async function PublicInvoicePage({ params }: Props) {
                 <p className="font-mono text-sm text-gray-400">{invoice.number}</p>
               </div>
               <span
-                className={`px-4 py-1.5 rounded-full text-xs font-bold ${
-                  isPaid
+                className={`px-4 py-1.5 rounded-full text-xs font-bold ${isPaid
                     ? "bg-green-50 text-green-700"
                     : isOverdue
-                    ? "bg-red-50 text-red-700"
-                    : "bg-yellow-50 text-yellow-700"
-                }`}
+                      ? "bg-red-50 text-red-700"
+                      : "bg-yellow-50 text-yellow-700"
+                  }`}
               >
                 {isPaid ? "Paid" : isOverdue ? "Overdue" : "Pending"}
               </span>
@@ -142,7 +139,7 @@ export default async function PublicInvoicePage({ params }: Props) {
             <div className="text-center mt-8 text-xs text-gray-400">
               Powered by{" "}
               <a href="/" className="font-bold text-black hover:underline">
-                🐦 DealBird
+                <img src="/logo.png" alt="" style={{ width: '14px', height: '14px', borderRadius: '3px', display: 'inline', verticalAlign: '-2px', marginRight: '3px' }} />DealBird
               </a>
             </div>
           </div>

@@ -31,7 +31,7 @@ export default function HomePage() {
       {/* Nav */}
       <nav id="nav">
         <Link href="/" className="nav-logo">
-          <div className="logo-mark">🐦</div>DealBird
+          <img src="/logo.png" alt="DealBird" className="logo-mark" />DealBird
         </Link>
         <ul className="nav-links">
           <li><a href="#how">How It Works</a></li>
@@ -148,7 +148,7 @@ export default function HomePage() {
           <p className="sub">Built for creator-brand deals specifically. Not freelancer tools with &quot;creator&quot; slapped on top.</p>
           <div className="feats">
             <div className="feat">
-              <div className="fi">🐦</div>
+              <div className="fi"><img src="/logo.png" alt="" style={{ width: '24px', height: '24px', borderRadius: '6px' }} /></div>
               <h3>Proposal Templates</h3>
               <p>Pre-built for TikTok, Instagram, YouTube, and UGC. Add deliverables, usage rights, timeline, and pricing in seconds.</p>
             </div>
@@ -279,7 +279,7 @@ export default function HomePage() {
         <div className="ft-inner">
           <div className="ft-top">
             <div className="ft-brand">
-              <Link href="/" className="nav-logo"><div className="logo-mark">🐦</div>DealBird</Link>
+              <Link href="/" className="nav-logo"><img src="/logo.png" alt="DealBird" className="logo-mark" />DealBird</Link>
               <p>Professional proposals and invoices for creator brand deals. Look professional. Get paid.</p>
             </div>
             <div className="ft-cols">
