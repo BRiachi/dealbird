@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
                         metadata: {
                             productId: product.id,
                             sellerId: product.userId,
-                        }
+                        } as Record<string, string>
                     },
                     unit_amount: getPrice(product),
                 },
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
                             productId: bumpProduct.id,
                             sellerId: bumpProduct.userId,
                             isOrderBump: "true"
-                        }
+                        } as Record<string, string>
                     },
                     unit_amount: getPrice(bumpProduct),
                 },
@@ -149,8 +149,6 @@ export async function POST(req: NextRequest) {
 
     } catch (err: any) {
         console.error("[CHECKOUT_ERROR]", err);
-        const fs = require('fs');
-        fs.appendFileSync('checkout_debug.log', `Error: ${err.message}\nStack: ${err.stack}\n`);
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

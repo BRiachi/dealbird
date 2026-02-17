@@ -40,7 +40,7 @@ export default async function IncomePage() {
 
     // Monthly revenue breakdown (last 6 months)
     const now = new Date();
-    const monthlyData = [];
+    const monthlyData: { month: string; revenue: number; orders: number }[] = [];
     for (let i = 5; i >= 0; i--) {
         const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);

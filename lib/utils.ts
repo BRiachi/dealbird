@@ -6,6 +6,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
+  DRAFT: { bg: "bg-gray-100", text: "text-gray-500", label: "Draft" },
+  SENT: { bg: "bg-blue-100", text: "text-blue-600", label: "Sent" },
+  SIGNED: { bg: "bg-green-100", text: "text-green-600", label: "Signed" },
+  PAID: { bg: "bg-green-100", text: "text-green-700", label: "Paid" },
+  PENDING: { bg: "bg-yellow-100", text: "text-yellow-700", label: "Pending" },
+  OVERDUE: { bg: "bg-red-100", text: "text-red-600", label: "Overdue" },
+  DECLINED: { bg: "bg-red-100", text: "text-red-600", label: "Declined" },
+  CANCELLED: { bg: "bg-gray-100", text: "text-gray-500", label: "Cancelled" },
+  FULFILLED: { bg: "bg-purple-100", text: "text-purple-600", label: "Fulfilled" },
+};
+
 export function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -52,3 +64,21 @@ export const downloadCSV = (data: any[], filename: string) => {
     document.body.removeChild(link);
   }
 };
+
+export function generateSlug(): string {
+  return Math.random().toString(36).substring(2, 14);
+}
+
+export function generateInvoiceNumber(count: number): string {
+  return `INV-${String(count + 1).padStart(4, "0")}`;
+}
+
+export function calculateTotal(items: { price: number }[]): number {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+
+export function canCreateProposal(plan: string | null, currentCount: number): boolean {
+  if (plan === "PRO" || plan === "CREATOR") return true;
+  return currentCount < 3; // Free tier: 3 proposals/month
+}
+
