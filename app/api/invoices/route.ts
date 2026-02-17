@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateSlug, generateInvoiceNumber, calculateTotal } from "@/lib/utils";
+import { sendEmail, emailTemplates } from "@/lib/email";
 
 // Create invoice from signed proposal
 export async function POST(req: Request) {
@@ -67,11 +68,43 @@ export async function PATCH(req: Request) {
   }
 
   if (action === "sendReminder") {
+    // Fetch creator details for email/reply-to
+    const creator = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true, email: true },
+    });
+
+    if (!creator?.email) return NextResponse.json({ error: "Creator email not found" }, { status: 400 });
+
+    const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL}/inv/${invoice.slug}`;
+    const formattedAmount = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(invoice.total / 100);
+
+    const emailRes = await sendEmail({
+      to: invoice.brandEmail,
+      replyTo: creator.email,
+      subject: `Invoice ${invoice.number} from ${creator.name || "Creator"}`,
+      html: emailTemplates.invoice(
+        invoice.brand,
+        creator.name || "Creator",
+        formattedAmount,
+        new Date(invoice.dueDate).toLocaleDateString(),
+        invoiceUrl,
+        invoice.number
+      ),
+    });
+
+    if (!emailRes.success) {
+      return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
+    }
+
     await prisma.invoice.update({
       where: { id: invoiceId },
       data: { lastReminderAt: new Date(), reminderCount: { increment: 1 } },
     });
-    // In production, send email via Resend here
+
     return NextResponse.json({ success: true });
   }
 

@@ -47,7 +47,7 @@ export function InvoiceActions({
         disabled={!!loading}
         className="flex-1 py-3 bg-[#0A0A0A] text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all disabled:opacity-50"
       >
-        {loading === "sendReminder" ? "Sending..." : "🔔 Send Reminder"}
+        {loading === "sendReminder" ? "Sending..." : "📤 Send to Client"}
       </button>
     </div>
   );

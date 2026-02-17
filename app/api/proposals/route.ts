@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateSlug, canCreateProposal } from "@/lib/utils";
+import { sendEmail, emailTemplates } from "@/lib/email";
 
 // GET /api/proposals - List user's proposals
 export async function GET() {
@@ -131,6 +132,36 @@ export async function PUT(req: NextRequest) {
     },
     include: { items: true },
   });
+
+  // If status is being set to SENT, trigger email
+  if (status === "SENT") {
+    const creator = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true, email: true },
+    });
+
+    if (creator?.email && proposal.brandEmail) {
+      const proposalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/p/${proposal.slug}`;
+      const total = proposal.items.reduce((acc, item) => acc + item.price, 0);
+      const formattedTotal = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(total / 100);
+
+      await sendEmail({
+        to: proposal.brandEmail,
+        replyTo: creator.email,
+        subject: `Proposal: ${proposal.title} from ${creator.name || "Creator"}`,
+        html: emailTemplates.proposal(
+          proposal.brand,
+          creator.name || "Creator",
+          proposal.title,
+          formattedTotal,
+          proposalUrl
+        ),
+      });
+    }
+  }
 
   return NextResponse.json(proposal);
 }
