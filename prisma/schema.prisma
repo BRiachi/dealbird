@@ -49,8 +49,18 @@ model User {
   email         String?    @unique
   emailVerified DateTime?
   image         String?
-  handle        String?
+  handle        String?    @unique
+  // Profile / Link-in-Bio
   bio           String?
+  avatar        String? // URL to custom avatar if different from Auth provider
+  theme         String   @default("simple") // simple, dark, colorful, etc.
+  accentColor   String   @default("#000000")
+  font          String   @default("Inter") // Google Font name
+  pixels        Json?    // { meta?: string, tiktok?: string, google?: string, snapchat?: string, pinterest?: string }
+  profileViews  Int      @default(0)
+
+  products  Product[]
+  orders    Order[]
 
   // Subscription
   plan             String   @default("free") // free, pro, agency
@@ -70,6 +80,70 @@ model User {
   sessions  Session[]
   proposals Proposal[]
   invoices  Invoice[]
+}
+
+enum ProductType {
+  URL
+  DIGITAL
+  COACHING
+  COLLECT_EMAIL
+  COURSE
+  MEMBERSHIP
+}
+
+model Product {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      ProductType
+  
+  title     String
+  subtitle  String?
+  slug      String      @unique // for standalone product pages or just unique tracking
+  
+  // Storefront appearance
+  image       String?     // thumbnail
+  buttonText  String?     // e.g. "Download Now"
+  
+  // Pricing
+  price       Int         @default(0) // cents
+  currency    String      @default("usd")
+  
+  // JSON Data (Flexible)
+  // Digital: { fileUrl: "", fileName: "" }
+  // Coaching: { duration: 30, availability: {...} }
+  // URL: { url: "" }
+  settings    Json? 
+  
+  // Stats
+  views       Int         @default(0)
+  sales       Int         @default(0)
+  revenue     Int         @default(0)
+  clicks      Int         @default(0)
+  
+  order       Int         @default(0)
+  archived    Boolean     @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String   // Seller (User) ID
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  buyerEmail String
+  buyerName  String?
+  amount     Int
+  status     String   // PENDING, PAID
+  stripeSessionId String   @unique
+  affiliateUserId String?  // ID of the user who referred this sale
+  createdAt  DateTime @default(now())
 }
 
 // ─── PROPOSALS ───

@@ -1,4 +1,5 @@
 import "./globals.css";
+import "@uploadthing/react/styles.css";
 import { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 

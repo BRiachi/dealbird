@@ -25,28 +25,73 @@ export async function POST(req: NextRequest) {
 
   switch (event.type) {
     case "checkout.session.completed": {
-      const subscription = await stripe.subscriptions.retrieve(
-        session.subscription as string
-      );
+      // Handle Product Purchase (One-Time)
+      // Handle Product Purchase (One-Time)
+      if (session.mode === "payment" && session.metadata?.type === "PRODUCT_PURCHASE") {
+        // Retrieve line items to handle bumps
+        const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+          expand: ["line_items.data.price.product"],
+        });
 
-      const priceId = subscription.items.data[0].price.id;
-      const plan =
-        priceId === process.env.STRIPE_PRO_PRICE_ID
-          ? "pro"
-          : priceId === process.env.STRIPE_AGENCY_PRICE_ID
-            ? "agency"
-            : "free";
+        const lineItems = expandedSession.line_items?.data || [];
 
-      await prisma.user.update({
-        where: { id: session.metadata!.userId },
-        data: {
-          stripeCustomerId: subscription.customer as string,
-          stripeSubId: subscription.id,
-          stripePriceId: priceId,
-          stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
-          plan,
-        },
-      });
+        for (const item of lineItems) {
+          const stripeProduct = item.price?.product as Stripe.Product;
+          const productId = stripeProduct?.metadata?.productId;
+          const sellerId = stripeProduct?.metadata?.sellerId;
+
+          if (productId && sellerId) {
+            await prisma.order.create({
+              data: {
+                productId: productId,
+                userId: sellerId,
+                buyerEmail: session.customer_details?.email || "unknown",
+                buyerName: session.customer_details?.name,
+                amount: item.amount_total,
+                status: "PAID",
+                stripeSessionId: session.id,
+                affiliateUserId: session.metadata?.affiliateUserId || null,
+              },
+            });
+
+            // Update Product Stats
+            await prisma.product.update({
+              where: { id: productId },
+              data: {
+                sales: { increment: 1 },
+                revenue: { increment: item.amount_total },
+              },
+            });
+          }
+        }
+        break;
+      }
+
+      // Handle Subscription (Existing)
+      if (session.subscription) {
+        const subscription = await stripe.subscriptions.retrieve(
+          session.subscription as string
+        );
+
+        const priceId = subscription.items.data[0].price.id;
+        const plan =
+          priceId === process.env.STRIPE_PRO_PRICE_ID
+            ? "pro"
+            : priceId === process.env.STRIPE_AGENCY_PRICE_ID
+              ? "agency"
+              : "free";
+
+        await prisma.user.update({
+          where: { id: session.metadata!.userId },
+          data: {
+            stripeCustomerId: subscription.customer as string,
+            stripeSubId: subscription.id,
+            stripePriceId: priceId,
+            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            plan,
+          },
+        });
+      }
       break;
     }
 

@@ -1,54 +1,54 @@
-import { customAlphabet } from "nanoid";
 
-// Generate short readable slugs for shareable links
-const nanoid = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 10);
-export const generateSlug = () => nanoid();
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
-// Format cents to dollars
-export const formatCurrency = (cents: number) => {
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
-};
+  }).format(amount);
+}
 
-// Format date
-export const formatDate = (date: Date | string) => {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
+export function formatDate(date: string | Date) {
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "long",
     day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
-};
+    year: "numeric"
+  });
+}
 
-// Generate invoice number
-export const generateInvoiceNumber = (count: number) => {
-  const year = new Date().getFullYear();
-  return `DB-${year}-${String(count + 1).padStart(4, "0")}`;
-};
+export const downloadCSV = (data: any[], filename: string) => {
+  if (!data || !data.length) return;
+  const separator = ",";
+  const keys = Object.keys(data[0]);
+  const csvContent =
+    keys.join(separator) +
+    "\n" +
+    data.map((row) => {
+      return keys.map((k) => {
+        let cell = row[k] === null || row[k] === undefined ? "" : row[k];
+        cell = cell instanceof Date ? cell.toISOString() : cell.toString();
+        cell = cell.replace(/"/g, '""');
+        if (cell.search(/("|,|\n)/g) >= 0) {
+          cell = `"${cell}"`;
+        }
+        return cell;
+      }).join(separator);
+    }).join("\n");
 
-// Calculate total from items (in cents)
-export const calculateTotal = (items: { price: number }[]) => {
-  return items.reduce((sum, item) => sum + item.price, 0);
-};
-
-// Check if user can create proposal (free tier limit)
-export const canCreateProposal = (plan: string, count: number) => {
-  if (plan === "pro" || plan === "agency") return true;
-  return count < 3;
-};
-
-// Status colors
-export const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-  DRAFT: { bg: "bg-gray-100", text: "text-gray-600", label: "Draft" },
-  SENT: { bg: "bg-blue-50", text: "text-blue-700", label: "Sent" },
-  VIEWED: { bg: "bg-purple-50", text: "text-purple-700", label: "Viewed" },
-  SIGNED: { bg: "bg-green-50", text: "text-green-700", label: "Signed" },
-  EXPIRED: { bg: "bg-red-50", text: "text-red-700", label: "Expired" },
-  PENDING: { bg: "bg-yellow-50", text: "text-yellow-700", label: "Pending" },
-  PAID: { bg: "bg-green-50", text: "text-green-700", label: "Paid" },
-  OVERDUE: { bg: "bg-red-50", text: "text-red-700", label: "Overdue" },
-  CANCELLED: { bg: "bg-gray-100", text: "text-gray-500", label: "Cancelled" },
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 };

@@ -2,21 +2,24 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { SettingsForm } from "@/components/settings-form";
+import { PixelSettings } from "./PixelSettings";
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
   const user = await prisma.user.findUnique({
     where: { id: session!.user.id },
-    select: { name: true, email: true, handle: true, bio: true, plan: true, stripeCustomerId: true },
+    select: { name: true, email: true, handle: true, bio: true, plan: true, stripeCustomerId: true, pixels: true },
   });
 
   if (!user) return null;
+
+  const pixels = (user.pixels as any) || {};
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold tracking-tight mb-1">Settings</h1>
-        <p className="text-gray-500">Manage your profile and billing.</p>
+        <p className="text-gray-500">Manage your profile, billing, and integrations.</p>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_340px] gap-6">
@@ -30,6 +33,16 @@ export default async function SettingsPage() {
               initialBio={user.bio || ""}
             />
           </div>
+
+          {/* Marketing Pixels */}
+          <div className="bg-white rounded-2xl border border-black/[0.07] p-6">
+            <div className="flex items-center gap-3 mb-1">
+              <h3 className="font-bold">Marketing Pixels</h3>
+              <span className="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">TRACKING</span>
+            </div>
+            <p className="text-sm text-gray-400 mb-5">Add tracking pixels to your public store for ad attribution and analytics.</p>
+            <PixelSettings initialPixels={pixels} />
+          </div>
         </div>
 
         {/* Billing sidebar */}
@@ -37,11 +50,10 @@ export default async function SettingsPage() {
           <div className="bg-white rounded-2xl border border-black/[0.07] p-5">
             <h4 className="font-bold text-sm mb-3">Current Plan</h4>
             <div className="flex items-center gap-3 mb-4">
-              <span className={`px-3 py-1.5 rounded-lg text-sm font-bold ${
-                user.plan === "pro" ? "bg-[#C8FF00] text-black" :
-                user.plan === "agency" ? "bg-purple-100 text-purple-700" :
-                "bg-gray-100 text-gray-600"
-              }`}>
+              <span className={`px-3 py-1.5 rounded-lg text-sm font-bold ${user.plan === "pro" ? "bg-[#C8FF00] text-black" :
+                  user.plan === "agency" ? "bg-purple-100 text-purple-700" :
+                    "bg-gray-100 text-gray-600"
+                }`}>
                 {user.plan === "free" ? "Free" : user.plan === "pro" ? "Pro" : "Agency"}
               </span>
             </div>

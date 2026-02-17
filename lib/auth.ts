@@ -15,11 +15,17 @@ const devProviders = process.env.NODE_ENV !== "production" ? [
     },
     async authorize(credentials) {
       if (!credentials?.email) return null;
-      // Find or create admin user
       let user = await prisma.user.findUnique({
         where: { email: credentials.email },
       });
-      if (!user) {
+
+      // Force upgrade to PRO for dev testing
+      if (user) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { plan: "pro" },
+        });
+      } else {
         user = await prisma.user.create({
           data: {
             email: credentials.email,
