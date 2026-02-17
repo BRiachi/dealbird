@@ -1,0 +1,42 @@
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import Link from "next/link";
+import { DashboardNav } from "@/components/dashboard-nav";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/login");
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA]">
+      <nav className="sticky top-0 z-50 h-16 px-6 flex items-center justify-between bg-white/90 backdrop-blur-xl border-b border-black/[0.06]">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-[#C8FF00] rounded-lg flex items-center justify-center text-sm -rotate-[5deg]">🐦</div>
+          <span className="font-extrabold text-lg tracking-tight">DealBird</span>
+        </Link>
+        <DashboardNav />
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/proposals/new" className="px-4 py-2 bg-[#C8FF00] text-black text-sm font-bold rounded-lg hover:bg-[#9FCC00] transition-all">
+            + New Proposal
+          </Link>
+          <div className="flex items-center gap-3">
+            {session.user.image ? (
+              <img src={session.user.image} alt="" className="w-8 h-8 rounded-full" />
+            ) : (
+              <div className="w-8 h-8 bg-[#C8FF00] rounded-full flex items-center justify-center text-xs font-bold">
+                {session.user.name?.charAt(0) || "U"}
+              </div>
+            )}
+            <span className="text-sm font-semibold hidden sm:block">{session.user.name || session.user.email}</span>
+          </div>
+        </div>
+      </nav>
+      <main className="max-w-[1120px] mx-auto px-6 py-8">{children}</main>
+    </div>
+  );
+}
