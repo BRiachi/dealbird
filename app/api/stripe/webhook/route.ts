@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripe();
   const body = await req.text();
   const signature = headers().get("Stripe-Signature")!;
 
@@ -33,8 +34,8 @@ export async function POST(req: NextRequest) {
         priceId === process.env.STRIPE_PRO_PRICE_ID
           ? "pro"
           : priceId === process.env.STRIPE_AGENCY_PRICE_ID
-          ? "agency"
-          : "free";
+            ? "agency"
+            : "free";
 
       await prisma.user.update({
         where: { id: session.metadata!.userId },
