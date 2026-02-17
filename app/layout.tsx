@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "DealBird — Proposals & Invoices for Creator Brand Deals",
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-[#FAF9F7] text-[#2D2D2D] min-h-screen">
         {children}
+        <Analytics />
       </body>
     </html>
   );
