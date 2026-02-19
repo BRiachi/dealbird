@@ -69,9 +69,10 @@ model User {
   stripePriceId    String?
   stripeCurrentPeriodEnd DateTime?
 
-  // Payouts (Stripe Connect)
+  // Payouts
   stripeConnectId      String?   @unique
   stripeConnectEnabled Boolean   @default(false)
+  paypalEmail          String?   // PayPal payout email
 
   // Limits
   proposalsThisMonth Int @default(0)
