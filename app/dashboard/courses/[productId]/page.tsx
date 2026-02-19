@@ -289,15 +289,20 @@ export default function CourseBuilderPage({ params }: { params: { productId: str
                                             </div>
                                         ) : (
                                             <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50">
+                                                <div className="text-3xl mb-2">🎬</div>
+                                                <p className="text-sm font-semibold mb-1">Upload Video</p>
+                                                <p className="text-xs text-gray-400 mb-4">MP4, MOV, WebM · up to 2GB</p>
                                                 <UploadButton
-                                                    endpoint="productFile"
+                                                    endpoint="courseVideo"
                                                     onClientUploadComplete={(res) => {
                                                         if (res?.[0]) updateLesson(activeLesson.id, { videoUrl: res[0].url });
                                                     }}
-                                                    onUploadError={(error: Error) => alert(`Error: ${error.message}`)}
-                                                    appearance={{ button: "bg-black text-white px-4 py-2 text-sm font-bold" }}
+                                                    onUploadError={(error: Error) => alert(`Upload failed: ${error.message}`)}
+                                                    appearance={{
+                                                        button: "bg-black text-white px-6 py-2.5 text-sm font-bold rounded-lg",
+                                                        allowedContent: "text-gray-400 text-xs mt-1",
+                                                    }}
                                                 />
-                                                <p className="text-xs text-gray-400 mt-2">MP4 up to 32MB</p>
                                             </div>
                                         )}
                                     </div>
