@@ -4,11 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function ProposalsPage() {
   const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/login");
   const proposals = await prisma.proposal.findMany({
-    where: { userId: session!.user.id },
+    where: { userId: session.user.id },
     include: { items: true },
     orderBy: { createdAt: "desc" },
   });

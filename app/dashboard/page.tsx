@@ -4,10 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
-  const userId = session!.user.id;
+  if (!session?.user) redirect("/login");
+  const userId = session.user.id;
 
   const [proposals, invoices, user] = await Promise.all([
     prisma.proposal.findMany({

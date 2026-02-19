@@ -4,13 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ProposalActions } from "@/components/proposal-actions";
 
 export default async function ProposalDetailPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/login");
   const proposal = await prisma.proposal.findFirst({
-    where: { id: params.id, userId: session!.user.id },
+    where: { id: params.id, userId: session.user.id },
     include: { items: { orderBy: { order: "asc" } }, invoice: true, views: { orderBy: { viewedAt: "desc" }, take: 10 } },
   });
 

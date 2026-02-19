@@ -34,48 +34,55 @@ export async function POST(req: NextRequest) {
     include: { items: true },
   });
 
-  // Send emails
-  try {
-    const creator = await prisma.user.findUnique({
-      where: { id: proposal.userId },
-      select: { name: true, email: true },
-    });
-
-    if (creator?.email) {
-      const proposalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/p/${slug}`;
-
-      // Email to Creator
-      await sendEmail({
-        to: creator.email,
-        replyTo: "noreply@dealbird.ai",
-        subject: `Deal Signed: ${proposal.title}`,
-        html: emailTemplates.dealSignedCreator(
-          creator.name || "Creator",
-          proposal.brand,
-          proposal.title,
-          proposalUrl
-        ),
+  // Send emails (fire and forget with timeout to prevent blocking)
+  const sendEmails = async () => {
+    try {
+      const creator = await prisma.user.findUnique({
+        where: { id: proposal.userId },
+        select: { name: true, email: true },
       });
 
-      // Email to Brand (if email exists)
-      if (proposal.brandEmail) {
+      if (creator?.email) {
+        const proposalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/p/${slug}`;
+
+        // Send to Creator
         await sendEmail({
-          to: proposal.brandEmail,
-          replyTo: creator.email,
-          subject: `You signed the deal: ${proposal.title}`,
-          html: emailTemplates.dealSignedBrand(
-            proposal.brand,
+          to: creator.email,
+          replyTo: "noreply@dealbird.ai",
+          subject: `Deal Signed: ${proposal.title}`,
+          html: emailTemplates.dealSignedCreator(
             creator.name || "Creator",
+            proposal.brand,
             proposal.title,
             proposalUrl
           ),
         });
+
+        // Send to Brand
+        if (proposal.brandEmail) {
+          await sendEmail({
+            to: proposal.brandEmail,
+            fromName: creator.name || undefined,
+            replyTo: creator.email,
+            subject: `You signed the deal: ${proposal.title}`,
+            html: emailTemplates.dealSignedBrand(
+              proposal.brand,
+              creator.name || "Creator",
+              proposal.title,
+              proposalUrl
+            ),
+          });
+        }
       }
+    } catch (err) {
+      console.error("Failed to send signing emails:", err);
     }
-  } catch (err) {
-    console.error("Failed to send signing emails:", err);
-    // Don't block the response if email fails
-  }
+  };
+
+  // Execute email sending with a 4s timeout so it doesn't block the response indefinitely
+  // We await it to ensure it starts, but race against a timeout
+  const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 4000));
+  await Promise.race([sendEmails(), timeoutPromise]);
 
   return NextResponse.json(updated);
 }

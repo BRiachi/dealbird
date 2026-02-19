@@ -17,9 +17,11 @@ interface Props {
     bumpProduct?: Product | null;
     isOpen: boolean;
     onClose: () => void;
+    bookingStart?: string; // ISO string
+    bookingEnd?: string;   // ISO string
 }
 
-export default function CheckoutModal({ product, bumpProduct, isOpen, onClose }: Props) {
+export default function CheckoutModal({ product, bumpProduct, isOpen, onClose, bookingStart, bookingEnd }: Props) {
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
@@ -49,7 +51,9 @@ export default function CheckoutModal({ product, bumpProduct, isOpen, onClose }:
                     productId: product.id,
                     bumpProductId: addBump ? bumpProduct?.id : undefined,
                     customerEmail: email,
-                    customerName: name, // For our DB if needed
+                    customerName: name,
+                    bookingStart,
+                    bookingEnd,
                 }),
             });
 
@@ -67,47 +71,67 @@ export default function CheckoutModal({ product, bumpProduct, isOpen, onClose }:
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl scale-100 animate-in zoom-in-95 duration-300 border border-white/20">
                 {/* Header */}
-                <div className="bg-gray-50 border-b border-gray-100 p-4 flex justify-between items-center">
-                    <h3 className="font-bold text-lg">Checkout</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-black">✕</button>
+                <div className="bg-gray-50/50 border-b border-gray-100 p-5 flex justify-between items-center backdrop-blur-sm">
+                    <h3 className="font-black text-lg tracking-tight">Checkout</h3>
+                    <button
+                        onClick={onClose}
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors text-gray-500 hover:text-black"
+                    >
+                        ✕
+                    </button>
                 </div>
 
-                <div className="p-6">
+                <div className="p-6 sm:p-8">
                     {/* Product Summary */}
-                    <div className="flex gap-4 mb-6">
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-2xl shrink-0">
-                            {product.type === "DIGITAL" ? "📂" : "📅"}
+                    <div className="flex gap-5 mb-8">
+                        <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center text-3xl shrink-0 shadow-inner border border-gray-100">
+                            {product.image ? (
+                                <img src={product.image} alt={product.title} className="w-full h-full object-cover rounded-2xl" />
+                            ) : (
+                                product.type === "DIGITAL" ? "📂" : "📅"
+                            )}
                         </div>
-                        <div>
-                            <h4 className="font-bold leading-tight">{product.title}</h4>
-                            <p className="text-sm text-gray-500 mt-1">{product.subtitle}</p>
-                            <div className="mt-1 font-mono text-sm">
+                        <div className="flex-1 min-w-0 py-1">
+                            <h4 className="font-bold text-lg leading-tight truncate">{product.title}</h4>
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">{product.subtitle}</p>
+
+                            {/* Show Booking Info */}
+                            {bookingStart && (
+                                <div className="mt-2 text-[10px] uppercase font-bold tracking-wider bg-black text-white px-2 py-1 rounded-md inline-block">
+                                    {new Date(bookingStart).toLocaleString(undefined, {
+                                        weekday: 'short', month: 'short', day: 'numeric',
+                                        hour: 'numeric', minute: 'numeric'
+                                    })}
+                                </div>
+                            )}
+
+                            <div className="mt-2 font-black text-xl tracking-tight">
                                 ${(mainPrice / 100).toFixed(2)}
                             </div>
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold uppercase text-gray-400 mb-1">Name</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5 ml-1">Full Name</label>
                                 <input
                                     required
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-black outline-none"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-black/5 focus:border-black transition-all outline-none placeholder:text-gray-400"
                                     placeholder="John Doe"
                                     value={name}
                                     onChange={e => setName(e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold uppercase text-gray-400 mb-1">Email</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5 ml-1">Email Address</label>
                                 <input
                                     required
                                     type="email"
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-black outline-none"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-black/5 focus:border-black transition-all outline-none placeholder:text-gray-400"
                                     placeholder="john@example.com"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
@@ -115,23 +139,30 @@ export default function CheckoutModal({ product, bumpProduct, isOpen, onClose }:
                             </div>
                         </div>
 
-                        {/* Order Bump */}
+                        {/* Order Bump - Premium Style */}
                         {bumpProduct && (
-                            <div className={`border-2 rounded-xl p-3 transition-colors cursor-pointer ${addBump ? 'border-[#C8FF00] bg-[#f9ffde]' : 'border-dashed border-gray-300 hover:border-gray-400'}`}
+                            <div
+                                className={`relative overflow-hidden border-2 rounded-2xl p-4 transition-all duration-300 cursor-pointer group ${addBump ? 'border-[#C8FF00] bg-[#f9ffde]' : 'border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
                                 onClick={() => setAddBump(!addBump)}
                             >
-                                <div className="flex items-start gap-3">
-                                    <div className={`w-5 h-5 rounded border flex items-center justify-center mt-0.5 ${addBump ? 'bg-black border-black text-white' : 'bg-white border-gray-300'}`}>
-                                        {addBump && "✓"}
+                                <div className="flex items-start gap-4 relative z-10">
+                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${addBump ? 'bg-black border-black text-white' : 'bg-white border-gray-200 group-hover:border-gray-300'}`}>
+                                        {addBump && <span className="text-sm font-bold">✓</span>}
                                     </div>
                                     <div className="flex-1">
-                                        <div className="flex justify-between font-bold text-sm">
-                                            <span className="text-red-600 animate-pulse">Wait! Add this?</span>
-                                            <span>+${(bumpPrice / 100).toFixed(2)}</span>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-bold text-sm text-red-500 flex items-center gap-1.5">
+                                                <span className="relative flex h-2 w-2">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                                </span>
+                                                One-time Offer
+                                            </span>
+                                            <span className="font-black text-sm">+${(bumpPrice / 100).toFixed(2)}</span>
                                         </div>
-                                        <p className="font-bold text-sm mt-0.5">{bumpProduct.title}</p>
-                                        <p className="text-xs text-gray-600 leading-tight mt-1">
-                                            {bumpProduct.subtitle || "One-time offer to upgrade your order."}
+                                        <p className="font-bold text-gray-900">{bumpProduct.title}</p>
+                                        <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                            {bumpProduct.subtitle || "Upgrade your order with this exclusive add-on."}
                                         </p>
                                     </div>
                                 </div>
@@ -139,18 +170,29 @@ export default function CheckoutModal({ product, bumpProduct, isOpen, onClose }:
                         )}
 
                         {/* Total & Submit */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 mt-2"
-                        >
-                            {loading ? "Processing..." : `Pay $${(total / 100).toFixed(2)}`}
-                        </button>
+                        <div className="pt-2">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 disabled:opacity-70 disabled:scale-100"
+                            >
+                                {loading ? (
+                                    <span className="flex items-center gap-2">
+                                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Processing...
+                                    </span>
+                                ) : (
+                                    <>Pay ${(total / 100).toFixed(2)}</>
+                                )}
+                            </button>
 
-                        <div className="text-center">
-                            <p className="text-[10px] text-gray-400">
-                                Secure checkout powered by Stripe.
-                            </p>
+                            <div className="text-center mt-4 flex items-center justify-center gap-1.5 opacity-40">
+                                <span className="text-[10px] font-bold uppercase tracking-wider">Powered by Stripe</span>
+                                <span className="text-xs">🔒</span>
+                            </div>
                         </div>
                     </form>
                 </div>

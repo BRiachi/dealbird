@@ -1,14 +1,17 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { SettingsForm } from "@/components/settings-form";
+import SettingsForm from "@/components/settings-form";
 import { PixelSettings } from "./PixelSettings";
+import { PayoutSettings } from "./PayoutSettings";
+import { redirect } from "next/navigation";
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/login");
   const user = await prisma.user.findUnique({
-    where: { id: session!.user.id },
-    select: { name: true, email: true, handle: true, bio: true, plan: true, stripeCustomerId: true, pixels: true },
+    where: { id: session.user.id },
+    select: { name: true, email: true, handle: true, bio: true, plan: true, stripeCustomerId: true, pixels: true, stripeConnectId: true, stripeConnectEnabled: true, theme: true, accentColor: true },
   });
 
   if (!user) return null;
@@ -31,6 +34,8 @@ export default async function SettingsPage() {
               initialName={user.name || ""}
               initialHandle={user.handle || ""}
               initialBio={user.bio || ""}
+              initialTheme={user.theme || "simple"}
+              initialAccent={user.accentColor || "#000000"}
             />
           </div>
 
@@ -43,6 +48,9 @@ export default async function SettingsPage() {
             <p className="text-sm text-gray-400 mb-5">Add tracking pixels to your public store for ad attribution and analytics.</p>
             <PixelSettings initialPixels={pixels} />
           </div>
+
+          {/* Payouts */}
+          <PayoutSettings user={user} />
         </div>
 
         {/* Billing sidebar */}
@@ -51,8 +59,8 @@ export default async function SettingsPage() {
             <h4 className="font-bold text-sm mb-3">Current Plan</h4>
             <div className="flex items-center gap-3 mb-4">
               <span className={`px-3 py-1.5 rounded-lg text-sm font-bold ${user.plan === "pro" ? "bg-[#C8FF00] text-black" :
-                  user.plan === "agency" ? "bg-purple-100 text-purple-700" :
-                    "bg-gray-100 text-gray-600"
+                user.plan === "agency" ? "bg-purple-100 text-purple-700" :
+                  "bg-gray-100 text-gray-600"
                 }`}>
                 {user.plan === "free" ? "Free" : user.plan === "pro" ? "Pro" : "Agency"}
               </span>

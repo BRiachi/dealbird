@@ -43,6 +43,33 @@ export async function POST(req: Request) {
     },
   });
 
+  // Send invoice email to the client
+  const creator = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { name: true, email: true },
+  });
+
+  const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL}/inv/${invoice.slug}`;
+  const formattedAmount = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(total / 100);
+
+  await sendEmail({
+    to: proposal.brandEmail,
+    fromName: creator?.name || undefined,
+    replyTo: creator?.email || undefined,
+    subject: `Invoice ${invoice.number} from ${creator?.name || "Creator"}`,
+    html: emailTemplates.invoice(
+      proposal.brand,
+      creator?.name || "Creator",
+      formattedAmount,
+      new Date(invoice.dueDate).toLocaleDateString(),
+      invoiceUrl,
+      invoice.number
+    ),
+  });
+
   return NextResponse.json(invoice);
 }
 
@@ -84,6 +111,7 @@ export async function PATCH(req: Request) {
 
     const emailRes = await sendEmail({
       to: invoice.brandEmail,
+      fromName: creator.name || undefined,
       replyTo: creator.email,
       subject: `Invoice ${invoice.number} from ${creator.name || "Creator"}`,
       html: emailTemplates.invoice(

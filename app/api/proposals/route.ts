@@ -150,6 +150,7 @@ export async function PUT(req: NextRequest) {
 
       await sendEmail({
         to: proposal.brandEmail,
+        fromName: creator.name || undefined,
         replyTo: creator.email,
         subject: `Proposal: ${proposal.title} from ${creator.name || "Creator"}`,
         html: emailTemplates.proposal(

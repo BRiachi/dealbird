@@ -67,74 +67,98 @@ export async function POST(req: NextRequest) {
             return (s.discountPrice && s.discountPrice < p.price) ? s.discountPrice : p.price;
         };
 
-        const line_items = [
-            {
-                price_data: {
-                    currency: product.currency || "usd",
-                    product_data: {
-                        name: product.title,
-                        description: product.subtitle || "Digital Product",
-                        images: product.image ? [product.image] : undefined,
-                        metadata: {
-                            productId: product.id,
-                            sellerId: product.userId,
-                        } as Record<string, string>
-                    },
-                    unit_amount: getPrice(product),
-                },
-                quantity: 1,
-            }
-        ];
-
-        if (bumpProduct) {
-            line_items.push({
-                price_data: {
-                    currency: bumpProduct.currency || "usd",
-                    product_data: {
-                        name: bumpProduct.title + " (Order Bump)",
-                        description: bumpProduct.subtitle || "Special Offer",
-                        images: bumpProduct.image ? [bumpProduct.image] : undefined,
-                        metadata: {
-                            productId: bumpProduct.id,
-                            sellerId: bumpProduct.userId,
-                            isOrderBump: "true"
-                        } as Record<string, string>
-                    },
-                    unit_amount: getPrice(bumpProduct),
-                },
-                quantity: 1,
-            });
-        }
-
-        // Determine success/cancel URLs
+        const isMembership = product.type === "MEMBERSHIP";
         const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         const successUrl = `${origin}/orders/success?session_id={CHECKOUT_SESSION_ID}`;
         const cancelUrl = `${origin}/u/${product.user.handle}?canceled=true`;
-
-        // Parse settings
         const settings = (product.settings as any) || {};
 
-        // Create Stripe Session
-        const session = await stripe.checkout.sessions.create({
-            mode: "payment",
-            payment_method_types: ["card"],
-            customer_email: body?.customerEmail,
-            phone_number_collection: settings.checkoutFields?.phone ? { enabled: true } : undefined,
-            line_items,
-            metadata: {
-                type: "PRODUCT_PURCHASE",
-                productId: product.id,
-                sellerId: product.userId,
-                bumpProductId: bumpProduct?.id || "",
-                affiliateUserId: affiliateUserId || ""
-            },
-            // If we want to collect fees later:
-            // payment_intent_data: {
-            //   application_fee_amount: Math.round(product.price * 0.05), // 5% fee
-            // },
-            success_url: successUrl,
-            cancel_url: cancelUrl,
-        });
+        let session;
+
+        if (isMembership) {
+            // Subscription checkout for MEMBERSHIP products
+            session = await stripe.checkout.sessions.create({
+                mode: "subscription",
+                payment_method_types: ["card"],
+                customer_email: body?.customerEmail,
+                line_items: [
+                    {
+                        price_data: {
+                            currency: product.currency || "usd",
+                            product_data: {
+                                name: product.title,
+                                description: product.subtitle || "Membership",
+                                images: product.image ? [product.image] : undefined,
+                                metadata: { productId: product.id, sellerId: product.userId } as Record<string, string>,
+                            },
+                            unit_amount: getPrice(product),
+                            recurring: { interval: "month" },
+                        },
+                        quantity: 1,
+                    },
+                ],
+                metadata: {
+                    type: "MEMBERSHIP_PURCHASE",
+                    productId: product.id,
+                    sellerId: product.userId,
+                    affiliateUserId: affiliateUserId || "",
+                },
+                success_url: successUrl,
+                cancel_url: cancelUrl,
+            });
+        } else {
+            // One-time payment for all other product types
+            const line_items: any[] = [
+                {
+                    price_data: {
+                        currency: product.currency || "usd",
+                        product_data: {
+                            name: product.title,
+                            description: product.subtitle || "Digital Product",
+                            images: product.image ? [product.image] : undefined,
+                            metadata: { productId: product.id, sellerId: product.userId } as Record<string, string>,
+                        },
+                        unit_amount: getPrice(product),
+                    },
+                    quantity: 1,
+                },
+            ];
+
+            if (bumpProduct) {
+                line_items.push({
+                    price_data: {
+                        currency: bumpProduct.currency || "usd",
+                        product_data: {
+                            name: bumpProduct.title + " (Order Bump)",
+                            description: bumpProduct.subtitle || "Special Offer",
+                            images: bumpProduct.image ? [bumpProduct.image] : undefined,
+                            metadata: { productId: bumpProduct.id, sellerId: bumpProduct.userId, isOrderBump: "true" } as Record<string, string>,
+                        },
+                        unit_amount: getPrice(bumpProduct),
+                    },
+                    quantity: 1,
+                });
+            }
+
+            session = await stripe.checkout.sessions.create({
+                mode: "payment",
+                payment_method_types: ["card"],
+                customer_email: body?.customerEmail,
+                phone_number_collection: settings.checkoutFields?.phone ? { enabled: true } : undefined,
+                line_items,
+                metadata: {
+                    type: "PRODUCT_PURCHASE",
+                    productId: product.id,
+                    sellerId: product.userId,
+                    bumpProductId: bumpProduct?.id || "",
+                    affiliateUserId: affiliateUserId || "",
+                    bookingStart: body?.bookingStart || "",
+                    bookingEnd: body?.bookingEnd || "",
+                },
+                success_url: successUrl,
+                cancel_url: cancelUrl,
+            });
+        }
 
         if (!session.url) {
             throw new Error("Failed to create session URL");

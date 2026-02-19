@@ -165,11 +165,19 @@ export default function StorePage() {
         const isPaid = editingProduct.price > 0 || editingProduct.type === "DIGITAL" || editingProduct.type === "COACHING" || editingProduct.type === "COURSE";
 
         return (
-            <div className="fixed inset-y-0 right-0 w-full max-w-lg bg-white border-l shadow-2xl z-50 transform transition-transform overflow-hidden flex flex-col">
+            <div className="fixed inset-y-0 right-0 lg:right-[400px] w-full max-w-lg bg-white border-l border-r-0 lg:border-r shadow-2xl z-50 transform transition-transform overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="p-4 border-b flex justify-between items-center bg-white z-10">
                     <h2 className="font-bold text-lg truncate">Edit {editingProduct.title}</h2>
-                    <button onClick={() => setEditingProduct(null)} className="text-gray-500 hover:text-black p-2 bg-gray-100 rounded-full">✕</button>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400 font-medium hidden sm:block">Auto-saved</span>
+                        <button
+                            onClick={() => setEditingProduct(null)}
+                            className="px-4 py-2 bg-black text-white font-bold text-sm rounded-lg hover:bg-gray-800 transition-colors"
+                        >
+                            Done
+                        </button>
+                    </div>
                 </div>
 
                 {/* Tabs */}
@@ -360,21 +368,28 @@ export default function StorePage() {
 
                             {/* Coaching specific */}
                             {editingProduct.type === "COACHING" && (
-                                <div className="space-y-4 pt-4 border-t">
-                                    <h3 className="font-bold text-xs uppercase text-gray-400 tracking-wider">Coaching Config</h3>
-                                    <div>
-                                        <label className="block text-sm font-semibold mb-1">Duration (minutes)</label>
-                                        <select
-                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#C8FF00] outline-none"
-                                            value={editingProduct.settings?.duration || 30}
-                                            onChange={(e) => updateSettings("duration", parseInt(e.target.value))}
-                                        >
-                                            <option value={15}>15 min</option>
-                                            <option value={30}>30 min</option>
-                                            <option value={45}>45 min</option>
-                                            <option value={60}>60 min</option>
-                                        </select>
-                                    </div>
+                                <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                                    <h3 className="font-bold text-sm text-purple-800 uppercase tracking-wider mb-2">Availability & Schedule</h3>
+                                    <p className="text-sm text-purple-600 mb-3">Set your meeting duration, location, and weekly hours.</p>
+                                    <button
+                                        onClick={() => router.push(`/dashboard/appointments/${editingProduct.id}`)}
+                                        className="w-full py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 transition-colors"
+                                    >
+                                        Edit Availability →
+                                    </button>
+                                </div>
+                            )}
+                            {/* Course: Curriculum Builder Link */}
+                            {editingProduct.type === "COURSE" && (
+                                <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                    <h3 className="font-bold text-sm text-blue-800 uppercase tracking-wider mb-2">Course Content</h3>
+                                    <p className="text-sm text-blue-600 mb-3">Manage modules, lessons, and video content.</p>
+                                    <button
+                                        onClick={() => router.push(`/dashboard/courses/${editingProduct.id}`)}
+                                        className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                                    >
+                                        Edit Curriculum →
+                                    </button>
                                 </div>
                             )}
                         </>
@@ -466,10 +481,16 @@ export default function StorePage() {
                         </div>
                     )}
 
-                    <div className="pt-6 border-t">
+                    <div className="pt-6 border-t flex flex-col gap-3">
+                        <button
+                            onClick={() => setEditingProduct(null)}
+                            className="w-full py-3 rounded-xl bg-black text-white font-bold transition-colors hover:bg-gray-800"
+                        >
+                            Done
+                        </button>
                         <button
                             onClick={() => deleteProduct(editingProduct.id)}
-                            className="w-full py-3 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 font-bold transition-colors"
+                            className="w-full py-2.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 text-sm font-semibold transition-colors"
                         >
                             Delete Product
                         </button>

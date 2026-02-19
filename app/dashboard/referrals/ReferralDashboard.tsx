@@ -14,18 +14,22 @@ interface Product {
 interface Stats {
     totalProducts: number;
     affiliateEnabled: number;
+
     totalCommissionEarned: number;
     activeAffiliates: number;
+    lifetimeReferrals: number;
 }
 
 export function ReferralDashboard({
     products,
     handle,
     stats,
+    payoutsEnabled,
 }: {
     products: Product[];
     handle: string;
     stats: Stats;
+    payoutsEnabled: boolean;
 }) {
     const [copiedLink, setCopiedLink] = useState<string | null>(null);
     const [baseUrl, setBaseUrl] = useState("https://dealbird.ai");
@@ -43,23 +47,48 @@ export function ReferralDashboard({
 
     return (
         <div className="space-y-6">
+            {/* Payouts Warning */}
+            {!payoutsEnabled && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-xl">
+                            ⚠️
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-amber-800">Payouts Not Configured</h3>
+                            <p className="text-sm text-amber-600">You need to setup payouts to receive your affiliate commissions.</p>
+                        </div>
+                    </div>
+                    <a
+                        href="/dashboard/settings"
+                        className="px-4 py-2 bg-amber-500 text-white font-bold rounded-xl text-sm hover:bg-amber-600 transition-colors"
+                    >
+                        Setup Payouts →
+                    </a>
+                </div>
+            )}
+
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">📦 Total Products</div>
-                    <div className="text-2xl font-black">{stats.totalProducts}</div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">🎁 Lifetime Referrals</div>
+                    <div className="text-2xl font-black text-purple-600">{stats.lifetimeReferrals}</div>
                 </div>
                 <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">🔗 Affiliate Enabled</div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">💰 My Earnings</div>
+                    <div className="text-2xl font-black text-green-600">${stats.totalCommissionEarned.toFixed(2)}</div>
+                </div>
+                <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">🔗 Active On</div>
                     <div className="text-2xl font-black text-blue-600">{stats.affiliateEnabled}</div>
                 </div>
                 <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">👥 Active Affiliates</div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">👥 Promoting Me</div>
                     <div className="text-2xl font-black">{stats.activeAffiliates}</div>
                 </div>
                 <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">💰 Commission Earned</div>
-                    <div className="text-2xl font-black text-green-600">${stats.totalCommissionEarned.toFixed(2)}</div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">📦 Total Products</div>
+                    <div className="text-2xl font-black">{stats.totalProducts}</div>
                 </div>
             </div>
 

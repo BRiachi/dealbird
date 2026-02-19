@@ -16,8 +16,10 @@ interface Booking {
     productTitle: string;
     amount: number;
     createdAt: string;
-    duration: number;
-    calendarUrl: string;
+    startTime: string; // ISO
+    endTime: string;   // ISO
+    status: string;
+    meetingUrl?: string | null;
 }
 
 export function AppointmentsView({
@@ -39,8 +41,8 @@ export function AppointmentsView({
 
         if (!matchesSearch) return false;
 
-        if (filter === "upcoming") return new Date(b.createdAt) >= now;
-        if (filter === "past") return new Date(b.createdAt) < now;
+        if (filter === "upcoming") return new Date(b.startTime) >= now;
+        if (filter === "past") return new Date(b.startTime) < now;
         return true;
     });
 
@@ -78,11 +80,11 @@ export function AppointmentsView({
                     <h2 className="font-bold text-lg mb-4">Your Coaching Products</h2>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {coachingProducts.map(product => (
-                            <div key={product.id} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+                            <div key={product.id} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer group" onClick={() => window.location.href = `/dashboard/appointments/${product.id}`}>
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-xl">📅</div>
+                                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">📅</div>
                                     <div>
-                                        <h3 className="font-bold text-sm">{product.title}</h3>
+                                        <h3 className="font-bold text-sm group-hover:text-blue-600 transition-colors">{product.title}</h3>
                                         <div className="flex items-center gap-2 text-xs text-gray-400">
                                             <span>${product.price / 100}</span>
                                             <span>•</span>
@@ -90,15 +92,9 @@ export function AppointmentsView({
                                         </div>
                                     </div>
                                 </div>
-                                {product.settings?.url && (
-                                    <a
-                                        href={product.settings.url}
-                                        target="_blank"
-                                        className="text-[11px] font-mono text-blue-500 hover:underline break-all"
-                                    >
-                                        {product.settings.url}
-                                    </a>
-                                )}
+                                <div className="text-[10px] text-gray-400 font-bold bg-white border border-gray-200 rounded-md px-2 py-1 inline-block mt-2">
+                                    Edit Availability →
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -106,7 +102,7 @@ export function AppointmentsView({
             )}
 
             {/* Bookings List */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[400px]">
                 <div className="p-5 border-b border-gray-100 space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
                         {/* Search */}
@@ -145,9 +141,9 @@ export function AppointmentsView({
                             <tr>
                                 <th className="px-6 py-3.5">Client</th>
                                 <th className="px-6 py-3.5">Product</th>
-                                <th className="px-6 py-3.5">Duration</th>
+                                <th className="px-6 py-3.5">Scheduled For</th>
+                                <th className="px-6 py-3.5">Status</th>
                                 <th className="px-6 py-3.5">Amount</th>
-                                <th className="px-6 py-3.5">Date</th>
                                 <th className="px-6 py-3.5">Actions</th>
                             </tr>
                         </thead>
@@ -161,64 +157,69 @@ export function AppointmentsView({
                                         </div>
                                         <div className="text-gray-400 text-xs">
                                             {bookings.length === 0
-                                                ? "Create a coaching product and share your link to start getting bookings!"
+                                                ? "Share your coaching product link to start getting booked!"
                                                 : "Try adjusting your filters"}
                                         </div>
-                                        {coachingProducts.length === 0 && (
-                                            <a
-                                                href="/dashboard/links"
-                                                className="inline-block mt-4 px-6 py-2.5 bg-[#C8FF00] text-black font-bold text-sm rounded-xl hover:bg-[#B8EB00] transition-all"
-                                            >
-                                                Create Coaching Product
-                                            </a>
-                                        )}
                                     </td>
                                 </tr>
                             ) : (
-                                filteredBookings.map(booking => (
-                                    <tr key={booking.id} className="hover:bg-[#C8FF00]/5 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xs font-bold text-blue-600 shrink-0">
-                                                    {booking.buyerName.charAt(0).toUpperCase()}
+                                filteredBookings.map(booking => {
+                                    const start = new Date(booking.startTime);
+                                    const end = new Date(booking.endTime);
+                                    const isPast = start < now;
+
+                                    return (
+                                        <tr key={booking.id} className="hover:bg-[#C8FF00]/5 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xs font-bold text-blue-600 shrink-0">
+                                                        {booking.buyerName.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-gray-900 text-sm">{booking.buyerName}</div>
+                                                        <div className="text-gray-400 text-xs">{booking.buyerEmail}</div>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <div className="font-bold text-gray-900 text-sm">{booking.buyerName}</div>
-                                                    <div className="text-gray-400 text-xs">{booking.buyerEmail}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="text-sm font-medium">{booking.productTitle}</span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className={`text-sm font-bold ${isPast ? "text-gray-400" : "text-gray-900"}`}>
+                                                    {start.toLocaleDateString("en-US", { month: "short", day: "numeric", weekday: "short" })}
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm">{booking.productTitle}</span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-xs font-bold">
-                                                {booking.duration} min
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="font-bold text-green-600">${booking.amount.toFixed(2)}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-500 text-xs">
-                                            {new Date(booking.createdAt).toLocaleDateString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                                year: "numeric",
-                                            })}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {booking.calendarUrl && (
-                                                <a
-                                                    href={booking.calendarUrl}
-                                                    target="_blank"
-                                                    className="text-xs font-bold text-blue-500 hover:text-blue-700 transition-colors"
-                                                >
-                                                    View Calendar →
-                                                </a>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
+                                                <div className="text-xs text-gray-400">
+                                                    {start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })} - {end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${booking.status === "CONFIRMED" ? "bg-green-50 text-green-600 border-green-100" :
+                                                        booking.status === "CANCELLED" ? "bg-red-50 text-red-600 border-red-100" :
+                                                            "bg-gray-50 text-gray-600 border-gray-100"
+                                                    }`}>
+                                                    {booking.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="font-bold text-gray-600">${booking.amount.toFixed(2)}</span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {booking.meetingUrl ? (
+                                                    <a
+                                                        href={booking.meetingUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline"
+                                                    >
+                                                        Join Meeting ↗
+                                                    </a>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400 italic">No link</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

@@ -5,12 +5,13 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import { InvoiceActions } from "@/components/invoice-actions";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/login");
   const invoice = await prisma.invoice.findFirst({
-    where: { id: params.id, userId: session!.user.id },
+    where: { id: params.id, userId: session.user.id },
     include: { items: { orderBy: { order: "asc" } } },
   });
 

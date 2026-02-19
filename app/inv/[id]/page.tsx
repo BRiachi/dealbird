@@ -1,12 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { PayButton } from "./PayButton";
 
 interface Props {
   params: { id: string };
+  searchParams: { paid?: string };
 }
 
-export default async function PublicInvoicePage({ params }: Props) {
+export default async function PublicInvoicePage({ params, searchParams }: Props) {
+  const justPaid = searchParams.paid === "true";
   const invoice = await prisma.invoice.findUnique({
     where: { slug: params.id },
     include: {
@@ -116,7 +119,7 @@ export default async function PublicInvoicePage({ params }: Props) {
             </div>
 
             {/* Status Banner */}
-            {isPaid && (
+            {(isPaid || justPaid) && (
               <div className="mt-8 p-5 bg-green-50 rounded-2xl border border-green-200 text-center flex items-center justify-center gap-3">
                 <span className="text-xl">✓</span>
                 <span className="font-bold text-green-700">
@@ -126,13 +129,18 @@ export default async function PublicInvoicePage({ params }: Props) {
               </div>
             )}
 
-            {isOverdue && (
+            {isOverdue && !justPaid && (
               <div className="mt-8 p-5 bg-red-50 rounded-2xl border border-red-200 text-center">
                 <p className="font-bold text-red-700">
                   This invoice is overdue. Please arrange payment at your earliest
                   convenience.
                 </p>
               </div>
+            )}
+
+            {/* Pay Now button for unpaid invoices */}
+            {!isPaid && !justPaid && (
+              <PayButton slug={params.id} amount={formatCurrency(invoice.total)} />
             )}
 
             {/* Powered by */}

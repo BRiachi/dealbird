@@ -23,25 +23,42 @@ export default async function AppointmentsPage() {
     });
 
     // Fetch orders for coaching products (these are bookings)
-    const bookings = await prisma.order.findMany({
+    // We need to fetch ALL bookings for this user's products
+    // Since Booking is linked to Order, and Order is linked to User (Seller), we can find bookings where order.userId = session.user.id
+
+    // However, the Booking model doesn't have a direct link to User.
+    // Booking -> Order -> User (Seller)
+    // So we can query Booking where order.userId = session.user.id
+    const bookings = await prisma.booking.findMany({
         where: {
-            userId: session.user.id,
-            status: "PAID",
-            product: { type: "COACHING" },
+            order: {
+                userId: session.user.id
+            }
         },
-        include: { product: true },
-        orderBy: { createdAt: "desc" },
+        include: {
+            order: true,
+            profile: {
+                include: {
+                    product: true
+                }
+            }
+        },
+        orderBy: {
+            startTime: "desc"
+        }
     });
 
     const serializedBookings = bookings.map(b => ({
         id: b.id,
-        buyerName: b.buyerName || "Unknown",
-        buyerEmail: b.buyerEmail || "",
-        productTitle: b.product.title,
-        amount: b.amount / 100,
-        createdAt: b.createdAt.toISOString(),
-        duration: (b.product.settings as any)?.duration || 30,
-        calendarUrl: (b.product.settings as any)?.url || "",
+        buyerName: b.order.buyerName || "Unknown",
+        buyerEmail: b.order.buyerEmail || "",
+        productTitle: b.profile.product.title,
+        amount: b.order.amount / 100,
+        createdAt: b.order.createdAt.toISOString(),
+        startTime: b.startTime.toISOString(),
+        endTime: b.endTime.toISOString(),
+        status: b.status,
+        meetingUrl: b.meetingUrl
     }));
 
     return (

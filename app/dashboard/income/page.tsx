@@ -4,10 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import { IncomeActions } from "./IncomeActions";
+import { redirect } from "next/navigation";
 
 export default async function IncomePage() {
     const session = await getServerSession(authOptions);
-    const userId = session!.user.id;
+    if (!session?.user) redirect("/login");
+    const userId = session.user.id;
 
     // Fetch all orders (sales made by this user)
     const orders = await prisma.order.findMany({

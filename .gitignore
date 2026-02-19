@@ -37,3 +37,12 @@ next-env.d.ts
 prisma/migrations/
 dealbird
 dealbird-final.zip
+*.tar.gz
+package-lock 2.json
+debug_*.ts
+verify_*.ts
+check_handle.ts
+clear_orders.ts
+set_affiliate_handle.ts
+test-output.css
+dealbird-landing.html

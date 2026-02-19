@@ -69,6 +69,10 @@ model User {
   stripePriceId    String?
   stripeCurrentPeriodEnd DateTime?
 
+  // Payouts (Stripe Connect)
+  stripeConnectId      String?   @unique
+  stripeConnectEnabled Boolean   @default(false)
+
   // Limits
   proposalsThisMonth Int @default(0)
   proposalsResetAt   DateTime?
@@ -80,6 +84,14 @@ model User {
   sessions  Session[]
   proposals Proposal[]
   invoices  Invoice[]
+  
+  // LMS Progress
+  lessonProgress UserLessonProgress[]
+
+  // Affiliate (Lifetime)
+  referredById String?
+  referredBy   User?   @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals    User[]  @relation("UserReferrals")
 }
 
 enum ProductType {
@@ -128,6 +140,42 @@ model Product {
   updatedAt DateTime @updatedAt
 
   orders    Order[]
+  
+  // Relations
+  course    Course?
+  appointmentProfile AppointmentProfile?
+}
+
+model AppointmentProfile {
+  id        String   @id @default(cuid())
+  productId String   @unique
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  duration  Int      // minutes (e.g., 30, 60)
+  location  String   // "google_meet", "zoom", "phone"
+  
+  // Availability Rules (JSON for flexibility)
+  // e.g. { mon: ["09:00-17:00"], tue: [] }
+  availability Json
+  
+  bookings  Booking[]
+}
+
+model Booking {
+  id         String   @id @default(cuid())
+  profileId  String
+  profile    AppointmentProfile @relation(fields: [profileId], references: [id])
+  
+  orderId    String   @unique
+  order      Order    @relation(fields: [orderId], references: [id])
+  
+  startTime  DateTime
+  endTime    DateTime
+  
+  status     String   @default("CONFIRMED") // PENDING, CONFIRMED, CANCELLED, COMPLETED
+  meetingUrl String?
+  
+  createdAt  DateTime @default(now())
 }
 
 model Order {
@@ -144,6 +192,8 @@ model Order {
   stripeSessionId String   @unique
   affiliateUserId String?  // ID of the user who referred this sale
   createdAt  DateTime @default(now())
+  
+  booking    Booking?
 }
 
 // ─── PROPOSALS ───
@@ -257,4 +307,60 @@ model InvoiceItem {
   price Int    // cents
 
   order Int @default(0)
+}
+
+// ─── COURSES (LMS) ───
+model Course {
+  id        String   @id @default(cuid())
+  productId String   @unique // Link to the Product entries (pricing, sales)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  modules   CourseModule[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CourseModule {
+  id       String   @id @default(cuid())
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  title    String
+  order    Int      @default(0)
+  
+  lessons  CourseLesson[]
+}
+
+model CourseLesson {
+  id       String       @id @default(cuid())
+  moduleId String
+  module   CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  title    String
+  order    Int      @default(0)
+  
+  // Content
+  videoType     String   @default("UPLOADTHING") // or YOUTUBE, VIMEO
+  videoUrl      String?
+  body          String?  @db.Text // Rich text content
+  resources     Json?    // Array of { name, url } attachments
+  
+  isFreePreview Boolean  @default(false)
+
+  // Progress tracking
+  progress      UserLessonProgress[]
+}
+
+model UserLessonProgress {
+  id        String       @id @default(cuid())
+  userId    String       // The student (buyer)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId  String
+  lesson    CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  completed Boolean      @default(false)
+  updatedAt DateTime     @updatedAt
+
+  @@unique([userId, lessonId])
 }

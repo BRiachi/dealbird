@@ -2,144 +2,104 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "DealBird <noreply@dealbird.ai>";
-
 interface EmailPayload {
   to: string;
-  replyTo: string;
   subject: string;
   html: string;
+  replyTo?: string;
+  fromName?: string; // display name, e.g. the creator's name
 }
 
-export async function sendEmail({ to, replyTo, subject, html }: EmailPayload) {
+export const sendEmail = async ({ to, subject, html, replyTo, fromName }: EmailPayload) => {
+  if (!process.env.RESEND_API_KEY) {
+    console.log("⚠️ [EMAIL MOCK] Would send to:", to);
+    console.log("Subject:", subject);
+    console.log("HTML Preview:", html.substring(0, 100) + "...");
+    return { success: true, id: "mock-id" };
+  }
+
+  const from = `${fromName || "DealBird"} <noreply@dealbird.ai>`;
+
   try {
     const data = await resend.emails.send({
-      from: FROM_EMAIL,
+      from,
       to,
-      replyTo,
       subject,
       html,
+      replyTo: replyTo,
     });
-    return { success: true, data };
+
+    console.log(`✅ [EMAIL SENT] To: ${to} | ID: ${data.data?.id}`);
+    return { success: true, id: data.data?.id };
   } catch (error) {
-    console.error("Email error:", error);
+    console.error("❌ [EMAIL ERROR]", error);
     return { success: false, error };
   }
-}
+};
+
+// --- Simple Templates ---
+
+export const getOrderReceiptEmail = (productName: string, price: number, downloadUrl?: string) => `
+  <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2>Thanks for your order! 🎉</h2>
+    <p>You purchased <strong>${productName}</strong> for $${(price / 100).toFixed(2)}.</p>
+    ${downloadUrl
+    ? `<a href="${downloadUrl}" style="display:inline-block; background:#000; color:#fff; padding:12px 24px; text-decoration:none; border-radius:6px; margin: 16px 0;">Access Content</a>`
+    : ""}
+    <p>If you have any questions, reply to this email.</p>
+  </div>
+`;
+
+export const getNewSaleEmail = (productName: string, amount: number, buyerEmail: string) => `
+  <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2>Cha-ching! New Sale! 💰</h2>
+    <p><strong>${buyerEmail}</strong> just purchased <strong>${productName}</strong>.</p>
+    <p>Amount: <strong>$${(amount / 100).toFixed(2)}</strong></p>
+    <p>Keep up the great work!</p>
+  </div>
+`;
+
+export const getBookingConfirmationEmail = (productName: string, time: Date, meetingUrl: string | null) => `
+  <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2>Booking Confirmed! 📅</h2>
+    <p>Your session for <strong>${productName}</strong> is scheduled.</p>
+    <p><strong>Time:</strong> ${time.toLocaleString("en-US", { dateStyle: "full", timeStyle: "short" })}</p>
+    ${meetingUrl
+    ? `<p><strong>Join Link:</strong> <a href="${meetingUrl}">${meetingUrl}</a></p>`
+    : ""}
+    <p>See you there!</p>
+  </div>
+`;
 
 export const emailTemplates = {
-  invoice: (
-    brandName: string,
-    creatorName: string,
-    amount: string,
-    dueDate: string,
-    invoiceUrl: string,
-    invoiceNumber: string
-  ) => `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #333;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo.png" alt="DealBird" style="width: 48px; border-radius: 12px;">
-      </div>
-      <div style="background: #fff; border: 1px solid #eee; border-radius: 16px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        <h2 style="margin: 0 0 20px; font-size: 24px; color: #111;">New Invoice from ${creatorName}</h2>
-        <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 24px;">
-          Hi ${brandName},<br><br>
-          Here's invoice <strong>${invoiceNumber}</strong> for <strong>${amount}</strong>.
-          Please arrange payment by <strong>${dueDate}</strong>.
-        </p>
-        <div style="text-align: center; margin: 32px 0;">
-          <a href="${invoiceUrl}" style="background: #000; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">View & Pay Invoice</a>
-        </div>
-        <p style="font-size: 14px; color: #888; text-align: center;">
-          or copy this link: <a href="${invoiceUrl}" style="color: #666;">${invoiceUrl}</a>
-        </p>
-      </div>
-      <div style="text-align: center; margin-top: 30px; color: #999; font-size: 12px;">
-        Sent via <strong>DealBird</strong> on behalf of ${creatorName}
-      </div>
+  dealSignedCreator: (creatorName: string, brand: string, title: string, proposalUrl: string) => `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>Deal Signed! 🎉</h2>
+      <p>Hi ${creatorName}, <strong>${brand}</strong> has signed your proposal: <strong>${title}</strong>.</p>
+      <a href="${proposalUrl}" style="display:inline-block; background:#000; color:#fff; padding:12px 24px; text-decoration:none; border-radius:6px; margin: 16px 0;">View Signed Proposal</a>
     </div>
   `,
-
-  proposal: (
-    brandName: string,
-    creatorName: string,
-    proposalTitle: string,
-    totalAmount: string,
-    proposalUrl: string
-  ) => `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #333;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo.png" alt="DealBird" style="width: 48px; border-radius: 12px;">
-      </div>
-      <div style="background: #fff; border: 1px solid #eee; border-radius: 16px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        <h2 style="margin: 0 0 20px; font-size: 24px; color: #111;">Proposal: ${proposalTitle}</h2>
-        <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 24px;">
-          Hi ${brandName},<br><br>
-          ${creatorName} has sent you a proposal for <strong>${proposalTitle}</strong> totaling <strong>${totalAmount}</strong>.
-          Review the details and sign directly online.
-        </p>
-        <div style="text-align: center; margin: 32px 0;">
-          <a href="${proposalUrl}" style="background: #C8FF00; color: #000; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Review Proposal</a>
-        </div>
-        <p style="font-size: 14px; color: #888; text-align: center;">
-          or copy this link: <a href="${proposalUrl}" style="color: #666;">${proposalUrl}</a>
-        </p>
-      </div>
-      <div style="text-align: center; margin-top: 30px; color: #999; font-size: 12px;">
-        Sent via <strong>DealBird</strong> on behalf of ${creatorName}
-      </div>
+  dealSignedBrand: (brand: string, creatorName: string, title: string, proposalUrl: string) => `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>You signed the deal! ✅</h2>
+      <p>Hi ${brand}, you've signed the proposal <strong>${title}</strong> from <strong>${creatorName}</strong>.</p>
+      <a href="${proposalUrl}" style="display:inline-block; background:#000; color:#fff; padding:12px 24px; text-decoration:none; border-radius:6px; margin: 16px 0;">View Proposal</a>
     </div>
   `,
-
-  dealSignedCreator: (
-    creatorName: string,
-    brandName: string,
-    proposalTitle: string,
-    proposalUrl: string
-  ) => `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #333;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo.png" alt="DealBird" style="width: 48px; border-radius: 12px;">
-      </div>
-      <div style="background: #fff; border: 1px solid #eee; border-radius: 16px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        <h2 style="margin: 0 0 20px; font-size: 24px; color: #111;">Deal Signed! 🎉</h2>
-        <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 24px;">
-          Hi ${creatorName},<br><br>
-          Great news! <strong>${brandName}</strong> has just signed your proposal: <strong>${proposalTitle}</strong>.
-        </p>
-        <div style="text-align: center; margin: 32px 0;">
-          <a href="${proposalUrl}" style="background: #000; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">View Signed Deal</a>
-        </div>
-        <p style="font-size: 14px; color: #888; text-align: center;">
-          Next step: Send them an invoice from your dashboard!
-        </p>
-      </div>
+  invoice: (brand: string, creatorName: string, amount: string, dueDate: string, invoiceUrl: string, invoiceNumber: string) => `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>Invoice ${invoiceNumber} from ${creatorName}</h2>
+      <p>Hi ${brand}, you have a new invoice for <strong>${amount}</strong> due on <strong>${dueDate}</strong>.</p>
+      <a href="${invoiceUrl}" style="display:inline-block; background:#000; color:#fff; padding:12px 24px; text-decoration:none; border-radius:6px; margin: 16px 0;">View Invoice</a>
+      <p style="color:#888; font-size:13px;">If you have any questions, reply to this email.</p>
     </div>
   `,
-
-  dealSignedBrand: (
-    brandName: string,
-    creatorName: string,
-    proposalTitle: string,
-    proposalUrl: string
-  ) => `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #333;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo.png" alt="DealBird" style="width: 48px; border-radius: 12px;">
-      </div>
-      <div style="background: #fff; border: 1px solid #eee; border-radius: 16px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        <h2 style="margin: 0 0 20px; font-size: 24px; color: #111;">You signed the deal!</h2>
-        <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 24px;">
-          Hi ${brandName},<br><br>
-          This email confirms you have successfully signed the proposal <strong>${proposalTitle}</strong> from ${creatorName}.
-        </p>
-        <div style="text-align: center; margin: 32px 0;">
-          <a href="${proposalUrl}" style="background: #f3f4f6; color: #000; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">View Signed Document</a>
-        </div>
-      </div>
-      <div style="text-align: center; margin-top: 30px; color: #999; font-size: 12px;">
-        Sent via <strong>DealBird</strong>
-      </div>
+  proposal: (brand: string, creatorName: string, title: string, amount: string, proposalUrl: string) => `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>New Proposal from ${creatorName} 📄</h2>
+      <p>Hi ${brand}, you have a new proposal: <strong>${title}</strong> for <strong>${amount}</strong>.</p>
+      <a href="${proposalUrl}" style="display:inline-block; background:#000; color:#fff; padding:12px 24px; text-decoration:none; border-radius:6px; margin: 16px 0;">View & Sign Proposal</a>
+      <p style="color:#888; font-size:13px;">If you have any questions, reply to this email.</p>
     </div>
-  `
+  `,
 };

@@ -2,10 +2,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
+import { redirect } from "next/navigation";
 
 export default async function AnalyticsPage() {
     const session = await getServerSession(authOptions);
-    const userId = session!.user.id;
+    if (!session?.user) redirect("/login");
+    const userId = session.user.id;
 
     const [products, orders, user, proposalViews] = await Promise.all([
         prisma.product.findMany({
