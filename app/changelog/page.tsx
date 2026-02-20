@@ -2,10 +2,10 @@ import SiteLayout from "@/components/SiteLayout";
 
 export default function ChangelogPage() {
     const updates = [
-        { version: "v1.2 - Pro Analytics", date: "August 10, 2026", type: "Feature", content: "Added detailed view tracking for Pro users. Now you can see exactly when a brand opens your proposal, how long they look at it, and if they share it." },
-        { version: "v1.1.4 - Invoice Exports", date: "July 22, 2026", type: "Improvement", content: "You can now export all your paid invoices as a CSV file for your accountant. Perfect for tax season." },
-        { version: "v1.1 - Custom Branding", date: "June 15, 2026", type: "Feature", content: "Pro users can now remove the 'Powered by DealBird' badge from their proposals and invoices, adding their own custom hex color." },
-        { version: "v1.0 - The Launch", date: "May 1, 2026", type: "Release", content: "DealBird is officially out of beta! Bringing proposals, e-signatures, and one-click invoicing to creators everywhere." },
+        { version: "v1.2 - Pro Analytics", date: "August 10, 2025", type: "Feature", content: "Added detailed view tracking for Pro users. Now you can see exactly when a brand opens your proposal, how long they look at it, and if they share it." },
+        { version: "v1.1.4 - Invoice Exports", date: "July 22, 2025", type: "Improvement", content: "You can now export all your paid invoices as a CSV file for your accountant. Perfect for tax season." },
+        { version: "v1.1 - Custom Branding", date: "June 15, 2025", type: "Feature", content: "Pro users can now remove the 'Powered by DealBird' badge from their proposals and invoices, adding their own custom hex color." },
+        { version: "v1.0 - The Launch", date: "May 1, 2025", type: "Release", content: "DealBird is officially out of beta! Bringing proposals, e-signatures, and one-click invoicing to creators everywhere." },
     ];
 
     return (

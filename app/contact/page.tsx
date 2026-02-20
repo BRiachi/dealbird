@@ -49,6 +49,11 @@ export default function ContactPage() {
                             <button type="button" className="btn btn-dark btn-lg" style={{ width: '100%', justifyContent: 'center' }}>Send Message</button>
                         </form>
                     </div>
+
+                    <div style={{ textAlign: 'center', marginTop: '3rem', color: '#666' }}>
+                        Prefer email? Reach us directly at <a href="mailto:support@dealbird.ai" style={{ color: '#111', fontWeight: 500 }}>support@dealbird.ai</a><br />
+                        For legal inquiries, email <a href="mailto:legal@dealbird.ai" style={{ color: '#111', fontWeight: 500 }}>legal@dealbird.ai</a>
+                    </div>
                 </div>
             </section>
         </SiteLayout>

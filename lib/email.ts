@@ -18,7 +18,10 @@ export const sendEmail = async ({ to, subject, html, replyTo, fromName }: EmailP
     return { success: true, id: "mock-id" };
   }
 
-  const from = `${fromName || "DealBird"} <noreply@dealbird.ai>`;
+  const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+  const from = process.env.RESEND_FROM_EMAIL
+    ? `${fromName || "DealBird"} <${fromEmail}>`
+    : `DealBird <${fromEmail}>`; // Resend onboarding strictness
 
   try {
     const data = await resend.emails.send({
@@ -29,10 +32,15 @@ export const sendEmail = async ({ to, subject, html, replyTo, fromName }: EmailP
       replyTo: replyTo,
     });
 
+    if (data.error) {
+      console.error("❌ [EMAIL RESEND API ERROR]", data.error);
+      return { success: false, error: data.error };
+    }
+
     console.log(`✅ [EMAIL SENT] To: ${to} | ID: ${data.data?.id}`);
     return { success: true, id: data.data?.id };
   } catch (error) {
-    console.error("❌ [EMAIL ERROR]", error);
+    console.error("❌ [EMAIL CATCH ERROR]", error);
     return { success: false, error };
   }
 };

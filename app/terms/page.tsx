@@ -8,7 +8,7 @@ export default function TermsPage() {
                     <h1 className="h2" style={{ marginTop: '0.5rem', textAlign: 'left', marginBottom: '1rem' }}>
                         Terms of Service
                     </h1>
-                    <p style={{ color: '#666', marginBottom: '3rem' }}>Last updated: August 20, 2026</p>
+                    <p style={{ color: '#666', marginBottom: '3rem' }}>Last updated: February 20, 2026</p>
 
                     <div style={{ color: '#444', lineHeight: 1.7, fontSize: '1.05rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <p>Please read these Terms of Service carefully before using DealBird operated by DealBird Inc.</p>
@@ -28,7 +28,7 @@ export default function TermsPage() {
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#111', marginTop: '1.5rem', marginBottom: '0.5rem' }}>5. User Conduct</h2>
                         <p>You agree not to use DealBird for any unlawful purpose. You may not use DealBird to process payments for restricted businesses as outlined by our payment provider, Stripe.</p>
 
-                        <p style={{ marginTop: '2rem' }}>For legal inquiries, contact legal@dealbird.co.</p>
+                        <p style={{ marginTop: '2rem' }}>For legal inquiries, contact legal@dealbird.ai.</p>
                     </div>
                 </div>
             </section>

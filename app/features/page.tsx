@@ -28,7 +28,7 @@ export default function FeaturesPage() {
                                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                                     <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>Signature</div>
                                     <div style={{ fontFamily: 'cursive', fontSize: '2rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Sarah Jenkins</div>
-                                    <div style={{ fontSize: '0.8rem', color: '#999' }}>Signed Aug 14, 2026 • 2:14 PM IP: 192.168.1.1</div>
+                                    <div style={{ fontSize: '0.8rem', color: '#999' }}>Signed Aug 14, 2025 • 2:14 PM IP: 192.168.1.1</div>
                                 </div>
                             </div>
                         </div>
@@ -43,7 +43,7 @@ export default function FeaturesPage() {
                                 </p>
                             </div>
                             <div className="inv-mock" style={{ order: 1, margin: 0 }}>
-                                <div className="inv-r"><span className="l">Invoice #</span><span className="v">DB-2026-0042</span></div>
+                                <div className="inv-r"><span className="l">Invoice #</span><span className="v">DB-2025-0042</span></div>
                                 <div className="inv-r"><span className="l">Campaign</span><span className="v">Summer Launch</span></div>
                                 <div className="inv-d" />
                                 <div className="inv-r"><span className="l">TikTok Videos (x3)</span><span className="v">$2,400</span></div>

@@ -18,9 +18,9 @@ export default async function DashboardLayout({
       <DashboardSidebar />
 
       {/* Main content */}
-      <div className="flex-1 min-w-0 pt-16 lg:pt-0">
+      <div className="flex-1 min-w-0 pt-16 lg:pt-8">
         {/* Top bar — hidden on mobile (sidebar handles it) */}
-        <nav className="hidden lg:flex sticky top-0 z-40 h-16 px-6 items-center justify-end bg-white/90 backdrop-blur-xl border-b border-black/[0.06]">
+        <nav className="hidden lg:flex sticky top-8 z-40 h-10 px-8 items-center justify-end">
           <div className="flex items-center gap-4">
             <Link href="/dashboard/proposals/new" className="px-4 py-2 bg-[#C8FF00] text-black text-sm font-bold rounded-lg hover:bg-[#9FCC00] transition-all">
               + New Proposal
@@ -37,7 +37,7 @@ export default async function DashboardLayout({
             </div>
           </div>
         </nav>
-        <main className="max-w-[1120px] mx-auto px-6 py-8 lg:mt-16">{children}</main>
+        <main className="max-w-[1120px] mx-auto px-6 lg:px-10 py-8 ">{children}</main>
       </div>
     </div>
   );

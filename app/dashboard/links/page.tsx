@@ -165,17 +165,17 @@ export default function StorePage() {
         const isPaid = editingProduct.price > 0 || editingProduct.type === "DIGITAL" || editingProduct.type === "COACHING" || editingProduct.type === "COURSE";
 
         return (
-            <div className="fixed inset-y-0 right-0 lg:right-[400px] w-full max-w-lg bg-white border-l border-r-0 lg:border-r shadow-2xl z-50 transform transition-transform overflow-hidden flex flex-col">
+            <div className="fixed inset-y-0 right-0 lg:right-[400px] w-full max-w-lg bg-white border-l border-r-0 lg:border-r shadow-2xl z-50 transform transition-transform flex flex-col pt-16 lg:pt-0">
                 {/* Header */}
-                <div className="p-4 border-b flex justify-between items-center bg-white z-10">
-                    <h2 className="font-bold text-lg truncate">Edit {editingProduct.title}</h2>
-                    <div className="flex items-center gap-2">
+                <div className="p-4 border-b flex justify-between items-center bg-white shrink-0">
+                    <h2 className="font-bold text-lg truncate flex-1">Edit {editingProduct.title}</h2>
+                    <div className="flex items-center gap-3">
                         <span className="text-xs text-gray-400 font-medium hidden sm:block">Auto-saved</span>
                         <button
                             onClick={() => setEditingProduct(null)}
-                            className="px-4 py-2 bg-black text-white font-bold text-sm rounded-lg hover:bg-gray-800 transition-colors"
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-500 hover:text-black"
                         >
-                            Done
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
                 </div>

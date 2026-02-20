@@ -88,6 +88,41 @@ export async function POST(req: NextRequest) {
     data: { proposalsThisMonth: { increment: 1 } },
   });
 
+  // If status is being set to SENT, trigger email
+  if (status === "SENT") {
+    const creator = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true, email: true },
+    });
+
+    if (creator?.email && proposal.brandEmail) {
+      const proposalUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/p/${proposal.slug}`;
+      const total = proposal.items.reduce((acc, item) => acc + item.price, 0);
+      const formattedTotal = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(total / 100);
+
+      const emailRes = await sendEmail({
+        to: proposal.brandEmail,
+        fromName: creator.name || undefined,
+        replyTo: creator.email,
+        subject: `Proposal: ${proposal.title} from ${creator.name || "Creator"}`,
+        html: emailTemplates.proposal(
+          proposal.brand,
+          creator.name || "Creator",
+          proposal.title,
+          formattedTotal,
+          proposalUrl
+        ),
+      });
+
+      if (!emailRes.success) {
+        console.error("Failed to send proposal POST email:", emailRes.error);
+      }
+    }
+  }
+
   return NextResponse.json(proposal, { status: 201 });
 }
 

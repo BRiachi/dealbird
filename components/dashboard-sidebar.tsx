@@ -70,9 +70,8 @@ export function DashboardSidebar() {
                 key={href}
                 href={href}
                 onClick={close}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${
-                    active ? "bg-[#C8FF00]/20 text-black" : "text-gray-500 hover:text-black hover:bg-gray-50"
-                }`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${active ? "bg-[#C8FF00]/20 text-black" : "text-gray-500 hover:text-black hover:bg-gray-50"
+                    }`}
             >
                 <span className="text-base w-5 text-center shrink-0">{icon}</span>
                 <span className="truncate">{label}</span>
@@ -124,13 +123,13 @@ export function DashboardSidebar() {
                     shadow-2xl transition-transform duration-300 ease-out
                     w-[270px]
                     ${isOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full pointer-events-none"}
-                    lg:translate-x-0 lg:pointer-events-auto lg:static lg:top-0 lg:h-full lg:z-auto lg:w-[220px] lg:shadow-none shrink-0
+                    lg:translate-x-0 lg:pointer-events-auto lg:sticky lg:top-0 lg:h-screen lg:z-auto lg:w-[220px] lg:shadow-none shrink-0
                 `}
             >
                 {/* Logo (Desktop only) */}
                 <Link
                     href="/dashboard"
-                    className="hidden lg:flex h-16 px-5 items-center gap-2.5 border-b border-gray-100 shrink-0"
+                    className="hidden lg:flex pt-8 pb-4 px-6 items-center gap-2.5 border-b border-gray-100 shrink-0"
                 >
                     <img src="/logo.png" alt="DealBird" className="w-7 h-7 rounded-lg -rotate-[5deg]" />
                     <span className="font-extrabold text-base tracking-tight">DealBird</span>
@@ -148,7 +147,7 @@ export function DashboardSidebar() {
                 </div>
 
                 {/* Nav Groups */}
-                <nav className="flex-1 overflow-y-auto py-2 px-3 space-y-4">
+                <nav className="flex-1 overflow-y-auto pt-4 pb-2 px-4 space-y-4">
                     {navGroups.map((group) => (
                         <div key={group.label || "_home"}>
                             {group.label && (
