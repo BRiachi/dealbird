@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "DealBird — Proposals & Invoices for Creator Brand Deals",
   description:
     "Professional proposals, e-signatures, and invoices built for creators. Send a link. Get signed. Get paid.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   openGraph: {
     title: "DealBird — Proposals & Invoices for Creator Brand Deals",
     description:

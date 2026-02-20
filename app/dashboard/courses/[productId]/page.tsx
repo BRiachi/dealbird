@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { UploadButton } from "@/app/utils/uploadthing";
+import { useUploadThing } from "@/app/utils/uploadthing";
 
 interface Lesson {
     id: string;
@@ -43,6 +43,42 @@ export default function CourseBuilderPage({ params }: { params: { productId: str
 
     // Mobile view toggle
     const [mobileView, setMobileView] = useState<"modules" | "editor">("modules");
+
+    // Video upload state
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploading, setUploading] = useState(false);
+    const [uploadDone, setUploadDone] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const { startUpload } = useUploadThing("courseVideo", {
+        onUploadProgress: (p) => setUploadProgress(p),
+        onClientUploadComplete: (res) => {
+            if (res?.[0]) {
+                const url = res[0].ufsUrl;
+                if (activeLesson) updateLesson(activeLesson.id, { videoUrl: url });
+            }
+            setUploading(false);
+            setUploadDone(true);
+            setUploadProgress(0);
+            setTimeout(() => setUploadDone(false), 3000);
+        },
+        onUploadError: (err) => {
+            alert(`Upload failed: ${err.message}`);
+            setUploading(false);
+            setUploadProgress(0);
+        },
+    });
+
+    const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        setUploadProgress(0);
+        setUploadDone(false);
+        await startUpload([file]);
+        // reset so the same file can be re-selected
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }, [startUpload]);
 
     useEffect(() => {
         fetch(`/api/courses/${params.productId}`)
@@ -159,17 +195,23 @@ export default function CourseBuilderPage({ params }: { params: { productId: str
         <div className="flex h-[calc(100vh-96px)] lg:h-[calc(100vh-192px)] bg-gray-50">
             {/* Modules panel — full width on mobile, 1/3 on desktop */}
             <div className={`w-full md:w-1/3 border-r border-gray-200 bg-white flex flex-col shrink-0 ${mobileView === "editor" ? "hidden md:flex" : "flex"}`}>
-                <div className="p-4 border-b flex justify-between items-center bg-gray-50 shrink-0">
-                    <div>
-                        <Link href="/dashboard/links" className="text-xs text-gray-500 hover:text-black">← Back to Store</Link>
-                        <h1 className="font-bold text-lg mt-1">Curriculum</h1>
+                <div className="p-4 border-b bg-gray-50 shrink-0">
+                    <div className="flex justify-between items-center mb-3">
+                        <Link
+                            href="/dashboard/links"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
+                        >
+                            ← Back to Store
+                        </Link>
+                        <button
+                            onClick={() => { setAddingModule(true); setAddingLessonToModule(null); }}
+                            className="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800"
+                        >
+                            + Module
+                        </button>
                     </div>
-                    <button
-                        onClick={() => { setAddingModule(true); setAddingLessonToModule(null); }}
-                        className="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800"
-                    >
-                        + Module
-                    </button>
+                    <h1 className="font-bold text-lg">Curriculum</h1>
+                    <p className="text-xs text-gray-400 mt-0.5">Changes are saved automatically</p>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -256,9 +298,29 @@ export default function CourseBuilderPage({ params }: { params: { productId: str
 
             {/* Lesson editor — full width on mobile, flex-1 on desktop */}
             <div className={`flex-1 flex flex-col overflow-hidden ${mobileView === "modules" ? "hidden md:flex" : "flex"}`}>
-                {/* Mobile back button */}
-                <div className="md:hidden shrink-0 p-3 border-b bg-white">
-                    <button onClick={() => setMobileView("modules")} className="text-sm text-gray-500 hover:text-black">← Back to Modules</button>
+                {/* Editor top bar — mobile shows back to modules + back to store; desktop shows back to store + auto-saved */}
+                <div className="shrink-0 p-3 border-b bg-white flex items-center justify-between gap-2">
+                    <button
+                        onClick={() => setMobileView("modules")}
+                        className="md:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
+                    >
+                        ← Modules
+                    </button>
+                    <Link
+                        href="/dashboard/links"
+                        className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
+                    >
+                        ← Back to Store
+                    </Link>
+                    <div className="flex items-center gap-3 ml-auto">
+                        {activeLesson && <span className="text-xs text-gray-400">Auto-saved</span>}
+                        <Link
+                            href="/dashboard/links"
+                            className="md:hidden inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-black text-white text-sm font-bold hover:bg-gray-800 transition-colors"
+                        >
+                            Done
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto bg-gray-50">
@@ -277,32 +339,85 @@ export default function CourseBuilderPage({ params }: { params: { productId: str
                                 <div className="p-6 space-y-6">
                                     <div>
                                         <label className="block text-sm font-bold mb-2">Video Content</label>
+                                        {/* Single hidden file input, always mounted */}
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="video/*"
+                                            className="hidden"
+                                            onChange={handleFileChange}
+                                        />
+
                                         {activeLesson.videoUrl ? (
-                                            <div className="rounded-xl overflow-hidden bg-black aspect-video relative group">
-                                                <video src={activeLesson.videoUrl} controls className="w-full h-full" />
-                                                <button
-                                                    onClick={() => updateLesson(activeLesson.id, { videoUrl: "" })}
-                                                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    Remove Video
-                                                </button>
+                                            <div className="space-y-2">
+                                                <div className="rounded-xl overflow-hidden bg-black aspect-video">
+                                                    <video
+                                                        key={activeLesson.videoUrl}
+                                                        src={activeLesson.videoUrl}
+                                                        controls
+                                                        className="w-full h-full"
+                                                    />
+                                                </div>
+                                                {uploading ? (
+                                                    <div className="space-y-1">
+                                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                                            <div
+                                                                className="bg-black h-2 rounded-full transition-all duration-300"
+                                                                style={{ width: `${uploadProgress}%` }}
+                                                            />
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 text-center">Replacing... {uploadProgress}%</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex gap-2 items-center">
+                                                        <a
+                                                            href={activeLesson.videoUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex-1 text-xs text-gray-500 hover:text-black underline truncate"
+                                                        >
+                                                            View / download video ↗
+                                                        </a>
+                                                        <button
+                                                            onClick={() => fileInputRef.current?.click()}
+                                                            className="text-xs text-gray-600 border border-gray-200 px-3 py-1 rounded-lg hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            Replace
+                                                        </button>
+                                                        <button
+                                                            onClick={() => updateLesson(activeLesson.id, { videoUrl: "" })}
+                                                            className="text-xs text-red-500 border border-red-200 px-3 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : uploading ? (
+                                            <div className="border-2 border-gray-200 rounded-xl p-8 text-center bg-gray-50">
+                                                <div className="text-3xl mb-3">📤</div>
+                                                <p className="text-sm font-semibold mb-3">Uploading video...</p>
+                                                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                                                    <div
+                                                        className="bg-black h-2.5 rounded-full transition-all duration-300"
+                                                        style={{ width: `${uploadProgress}%` }}
+                                                    />
+                                                </div>
+                                                <p className="text-xs text-gray-500 font-semibold">{uploadProgress}%</p>
+                                            </div>
+                                        ) : uploadDone ? (
+                                            <div className="border-2 border-green-200 rounded-xl p-8 text-center bg-green-50">
+                                                <div className="text-3xl mb-2">✅</div>
+                                                <p className="text-sm font-semibold text-green-700">Upload complete! Video saved.</p>
                                             </div>
                                         ) : (
-                                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50">
+                                            <div
+                                                className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 cursor-pointer hover:border-gray-400 hover:bg-gray-100 transition-colors"
+                                                onClick={() => fileInputRef.current?.click()}
+                                            >
                                                 <div className="text-3xl mb-2">🎬</div>
-                                                <p className="text-sm font-semibold mb-1">Upload Video</p>
-                                                <p className="text-xs text-gray-400 mb-4">MP4, MOV, WebM · up to 2GB</p>
-                                                <UploadButton
-                                                    endpoint="courseVideo"
-                                                    onClientUploadComplete={(res) => {
-                                                        if (res?.[0]) updateLesson(activeLesson.id, { videoUrl: res[0].url });
-                                                    }}
-                                                    onUploadError={(error: Error) => alert(`Upload failed: ${error.message}`)}
-                                                    appearance={{
-                                                        button: "bg-black text-white px-6 py-2.5 text-sm font-bold rounded-lg",
-                                                        allowedContent: "text-gray-400 text-xs mt-1",
-                                                    }}
-                                                />
+                                                <p className="text-sm font-semibold mb-1">Click to upload video</p>
+                                                <p className="text-xs text-gray-400">MP4, MOV, WebM · up to 2GB</p>
                                             </div>
                                         )}
                                     </div>

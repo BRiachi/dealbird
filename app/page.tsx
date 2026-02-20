@@ -284,14 +284,35 @@ export default function HomePage() {
             </div>
             <div className="ft-cols">
               {[
-                { title: "Product", links: ["Features", "Pricing", "Templates", "Changelog"] },
-                { title: "Resources", links: ["Creator Guide", "Rate Calculator", "Blog", "Help Center"] },
-                { title: "Company", links: ["About", "Privacy", "Terms", "Contact"] },
+                {
+                  title: "Product", links: [
+                    { label: "Features", href: "/features" },
+                    { label: "Pricing", href: "/pricing" },
+                    { label: "Templates", href: "/templates" },
+                    { label: "Changelog", href: "/changelog" }
+                  ]
+                },
+                {
+                  title: "Resources", links: [
+                    { label: "Creator Guide", href: "/creator-guide" },
+                    { label: "Rate Calculator", href: "/rate-calculator" },
+                    { label: "Blog", href: "/blog" },
+                    { label: "Help Center", href: "/help-center" }
+                  ]
+                },
+                {
+                  title: "Company", links: [
+                    { label: "About", href: "/about" },
+                    { label: "Privacy", href: "/privacy" },
+                    { label: "Terms", href: "/terms" },
+                    { label: "Contact", href: "/contact" }
+                  ]
+                },
               ].map((g) => (
                 <div key={g.title} className="ft-col">
                   <div className="ft-col-title">{g.title}</div>
                   {g.links.map((l) => (
-                    <a key={l} href="#">{l}</a>
+                    <Link key={l.label} href={l.href}>{l.label}</Link>
                   ))}
                 </div>
               ))}
