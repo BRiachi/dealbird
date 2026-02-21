@@ -50,6 +50,7 @@ export default function NewProposalPage() {
     terms: "Net 30",
     notes: "",
     items: [] as { name: string; detail: string; price: number }[],
+    addOns: [] as { name: string; description: string; price: number }[],
   });
 
   const total = form.items.reduce((s, i) => s + (i.price || 0), 0);
@@ -67,6 +68,15 @@ export default function NewProposalPage() {
 
   const addItem = () => setForm({ ...form, items: [...form.items, { name: "", detail: "", price: 0 }] });
   const removeItem = (idx: number) => setForm({ ...form, items: form.items.filter((_, i) => i !== idx) });
+
+  const updateAddOn = (idx: number, field: string, val: string | number) => {
+    const addOns = [...form.addOns];
+    addOns[idx] = { ...addOns[idx], [field]: field === "price" ? Number(val) || 0 : val };
+    setForm({ ...form, addOns });
+  };
+
+  const addAddOn = () => setForm({ ...form, addOns: [...form.addOns, { name: "", description: "", price: 0 }] });
+  const removeAddOn = (idx: number) => setForm({ ...form, addOns: form.addOns.filter((_, i) => i !== idx) });
 
   const handleSave = async (status: "DRAFT" | "SENT") => {
     setSaving(true);
@@ -180,8 +190,40 @@ export default function NewProposalPage() {
                   <input value={item.detail} onChange={(e) => updateItem(i, "detail", e.target.value)} placeholder="30-60s, hook + CTA, 1 revision" className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-xs focus:border-[#C8FF00] outline-none" />
                 </div>
               ))}
+              // ... existing items UI (removed for brevity, but I just need to append the AddOns block below it)
               {form.items.length === 0 && (
                 <div className="text-center py-8 text-gray-400 text-sm">No items yet. Click "+ Add Item" to start.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Upsells / Add-Ons */}
+          <div className="bg-white rounded-2xl border border-black/[0.07] p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-bold">Upsells / Add-Ons</h3>
+                <p className="text-xs text-gray-400">Optional extras the brand can select before signing (e.g. Usage Rights, Whitelisting).</p>
+              </div>
+              <button onClick={addAddOn} className="px-4 py-1.5 bg-[#FAFAFA] text-black border border-black/[0.1] font-bold text-xs rounded-lg hover:bg-black hover:text-white transition-all">
+                + Add Upsell
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {form.addOns.map((addon, i) => (
+                <div key={i} className="p-4 bg-white rounded-xl border border-dashed border-gray-300">
+                  <div className="grid grid-cols-[1fr_140px_auto] gap-3 mb-2.5">
+                    <input value={addon.name} onChange={(e) => updateAddOn(i, "name", e.target.value)} placeholder="30-Day Usage Rights" className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-black outline-none" />
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-gray-400 text-sm">$</span>
+                      <input type="number" value={addon.price ? addon.price / 100 : ""} onChange={(e) => updateAddOn(i, "price", Math.round(Number(e.target.value) * 100))} placeholder="0" className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-lg text-sm font-mono focus:border-black outline-none" />
+                    </div>
+                    <button onClick={() => removeAddOn(i)} className="px-3 py-2 bg-red-50 text-red-500 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors">✕</button>
+                  </div>
+                  <input value={addon.description} onChange={(e) => updateAddOn(i, "description", e.target.value)} placeholder="Grants organic usage rights across your brand's social channels." className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-xs focus:border-black outline-none" />
+                </div>
+              ))}
+              {form.addOns.length === 0 && (
+                <div className="text-center py-6 text-gray-400 text-sm">No add-ons offered.</div>
               )}
             </div>
           </div>
@@ -205,6 +247,20 @@ export default function NewProposalPage() {
                 <span className="font-mono font-bold">{fmtDollars(item.price || 0)}</span>
               </div>
             ))}
+            {form.addOns.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-dashed border-gray-200">
+                <div className="text-xs font-semibold text-gray-400 mb-2 uppercase">Optional Add-Ons</div>
+                {form.addOns.map((addon, i) => (
+                  <div key={i} className="flex justify-between py-2 text-sm text-gray-500">
+                    <span className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm border border-gray-300"></div>
+                      {addon.name || "Add-On"}
+                    </span>
+                    <span className="font-mono">+{fmtDollars(addon.price || 0)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex justify-between pt-3.5 border-t-2 border-black mt-2">
               <span className="font-bold">Total</span>
               <span className="font-mono font-bold text-lg">{fmtDollars(total)}</span>

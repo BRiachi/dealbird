@@ -216,8 +216,9 @@ model Proposal {
   signature String?        // signer name
   signatureData String?    @db.Text // base64 signature image
 
-  items ProposalItem[]
-  invoice Invoice?
+  items     ProposalItem[]
+  addOns    ProposalAddOn[]
+  invoice   Invoice?
 
   // Analytics (Pro feature)
   views     ProposalView[]
@@ -245,6 +246,21 @@ model ProposalItem {
   price  Int      // stored in cents
 
   order  Int @default(0)
+
+  createdAt DateTime @default(now())
+}
+
+model ProposalAddOn {
+  id         String   @id @default(cuid())
+  proposalId String
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  price       Int      // stored in cents
+
+  isSelected  Boolean  @default(false) // Brand selects this before signing
+  order       Int      @default(0)
 
   createdAt DateTime @default(now())
 }

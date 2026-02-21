@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { title, brand, brandEmail, terms, notes, items, status } = body;
+  const { title, brand, brandEmail, terms, notes, items, addOns, status } = body;
 
   const proposal = await prisma.proposal.create({
     data: {
@@ -78,8 +78,16 @@ export async function POST(req: NextRequest) {
           order: idx,
         })),
       },
+      addOns: {
+        create: (addOns || []).map((addon: any, idx: number) => ({
+          name: addon.name,
+          description: addon.description || "",
+          price: Math.round(addon.price),
+          order: idx,
+        })),
+      },
     },
-    include: { items: true },
+    include: { items: true, addOns: true },
   });
 
   // Increment monthly counter
@@ -134,7 +142,7 @@ export async function PUT(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { id, title, brand, brandEmail, terms, notes, items, status } = body;
+  const { id, title, brand, brandEmail, terms, notes, items, addOns, status } = body;
 
   // Verify ownership
   const existing = await prisma.proposal.findFirst({
@@ -145,6 +153,7 @@ export async function PUT(req: NextRequest) {
 
   // Delete old items and recreate
   await prisma.proposalItem.deleteMany({ where: { proposalId: id } });
+  await prisma.proposalAddOn.deleteMany({ where: { proposalId: id } });
 
   const proposal = await prisma.proposal.update({
     where: { id },
@@ -164,8 +173,16 @@ export async function PUT(req: NextRequest) {
           order: idx,
         })),
       },
+      addOns: {
+        create: (addOns || []).map((addon: any, idx: number) => ({
+          name: addon.name,
+          description: addon.description || "",
+          price: Math.round(addon.price),
+          order: idx,
+        })),
+      },
     },
-    include: { items: true },
+    include: { items: true, addOns: true },
   });
 
   // If status is being set to SENT, trigger email
