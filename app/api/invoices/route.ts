@@ -14,14 +14,21 @@ export async function POST(req: Request) {
 
   const proposal = await prisma.proposal.findFirst({
     where: { id: proposalId, userId: session.user.id, status: "SIGNED" },
-    include: { items: true, invoice: true },
+    include: { items: true, invoice: true, addOns: { where: { isSelected: true } } },
   });
 
   if (!proposal) return NextResponse.json({ error: "Proposal not found or not signed" }, { status: 400 });
   if (proposal.invoice) return NextResponse.json({ error: "Invoice already exists", id: proposal.invoice.id }, { status: 400 });
 
-  const invoiceCount = await prisma.invoice.count({ where: { userId: session.user.id } });
-  const total = calculateTotal(proposal.items);
+  const baseTotal = calculateTotal(proposal.items);
+  const addOnsTotal = proposal.addOns.reduce((sum, addon) => sum + addon.price, 0);
+  const total = baseTotal + addOnsTotal;
+
+  // Combine base items and selected add-ons into a single flat array for invoice items
+  const combinedItems = [
+    ...proposal.items.map((item) => ({ name: item.name, price: item.price })),
+    ...proposal.addOns.map((addon) => ({ name: `+ ${addon.name}`, price: addon.price }))
+  ];
 
   const invoice = await prisma.invoice.create({
     data: {
@@ -34,7 +41,7 @@ export async function POST(req: Request) {
       total,
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       items: {
-        create: proposal.items.map((item, idx) => ({
+        create: combinedItems.map((item, idx) => ({
           name: item.name,
           price: item.price,
           order: idx,

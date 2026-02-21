@@ -5,7 +5,7 @@ import { sendEmail, emailTemplates } from "@/lib/email";
 // POST /api/proposals/sign - Brand signs a proposal (public route)
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { slug, signature, signatureData } = body;
+  const { slug, signature, signatureData, selectedAddOnIds } = body;
 
   if (!slug || !signature) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
 
   const proposal = await prisma.proposal.findUnique({
     where: { slug },
+    include: { addOns: true },
   });
 
   if (!proposal) {
@@ -23,6 +24,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Already signed" }, { status: 400 });
   }
 
+  // Mark selected add-ons in the database
+  if (selectedAddOnIds && Array.isArray(selectedAddOnIds) && selectedAddOnIds.length > 0) {
+    await prisma.proposalAddOn.updateMany({
+      where: {
+        proposalId: proposal.id,
+        id: { in: selectedAddOnIds },
+      },
+      data: { isSelected: true },
+    });
+  }
+
   const updated = await prisma.proposal.update({
     where: { slug },
     data: {
@@ -31,7 +43,7 @@ export async function POST(req: NextRequest) {
       signature,
       signatureData: signatureData || null,
     },
-    include: { items: true },
+    include: { items: true, addOns: true },
   });
 
   // Send emails (fire and forget with timeout to prevent blocking)

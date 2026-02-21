@@ -3,13 +3,41 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-export default function ProposalSignForm({ slug }: { slug: string }) {
+import { formatCurrency } from "@/lib/utils";
+
+interface ProposalItem {
+  id: string;
+  name: string;
+  price: number;
+}
+
+interface ProposalAddOn {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+}
+
+export default function ProposalSignForm({
+  slug,
+  baseTotal,
+  items,
+  addOns,
+}: {
+  slug: string;
+  baseTotal: number;
+  items: ProposalItem[];
+  addOns: ProposalAddOn[];
+}) {
   const router = useRouter();
   const [sigName, setSigName] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [signed, setSigned] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
+  const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({});
+
+  const dynamicTotal = baseTotal + addOns.filter(a => selectedAddOns[a.id]).reduce((sum, a) => sum + a.price, 0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
@@ -72,7 +100,12 @@ export default function ProposalSignForm({ slug }: { slug: string }) {
       const res = await fetch("/api/proposals/sign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, signature: sigName, signatureData }),
+        body: JSON.stringify({
+          slug,
+          signature: sigName,
+          signatureData,
+          selectedAddOnIds: Object.keys(selectedAddOns).filter(id => selectedAddOns[id])
+        }),
       });
 
       if (res.ok) {
@@ -105,6 +138,61 @@ export default function ProposalSignForm({ slug }: { slug: string }) {
   return (
     <div className="mt-8 p-6 bg-[#FAFAFA] rounded-2xl border border-gray-200">
       <h3 className="font-bold text-base mb-5">✍️ Approve & Sign</h3>
+
+      {/* Add-Ons Checklist */}
+      {addOns && addOns.length > 0 && (
+        <div className="mb-6">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+            Optional Upgrades
+          </label>
+          <div className="flex flex-col gap-3">
+            {addOns.map((addon) => {
+              const checked = !!selectedAddOns[addon.id];
+              return (
+                <label
+                  key={addon.id}
+                  className={`flex items-start gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer ${checked
+                    ? "border-[#C8FF00] bg-[#FAFAFA]"
+                    : "border-gray-200 bg-white hover:border-gray-300"
+                    }`}
+                >
+                  <div className="pt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) =>
+                        setSelectedAddOns((prev) => ({
+                          ...prev,
+                          [addon.id]: e.target.checked,
+                        }))
+                      }
+                      className="w-5 h-5 accent-[#C8FF00] rounded text-black focus:ring-black"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-bold text-sm">{addon.name}</span>
+                      <span className="font-mono font-bold text-sm text-green-600">
+                        +{formatCurrency(addon.price)}
+                      </span>
+                    </div>
+                    {addon.description && (
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        {addon.description}
+                      </p>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 flex justify-between items-center py-4 border-y border-dashed border-gray-200">
+            <span className="font-bold text-sm text-gray-500">New Total (if signed)</span>
+            <span className="font-mono font-extrabold text-xl">{formatCurrency(dynamicTotal)}</span>
+          </div>
+        </div>
+      )}
 
       {/* Name */}
       <div className="mb-4">

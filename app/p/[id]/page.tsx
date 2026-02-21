@@ -10,7 +10,7 @@ interface Props {
 export async function generateMetadata({ params }: Props) {
   const proposal = await prisma.proposal.findUnique({
     where: { slug: params.id },
-    include: { user: { select: { name: true } }, items: true },
+    include: { user: { select: { name: true } }, items: true, addOns: true },
   });
 
   if (!proposal) return { title: "Proposal Not Found" };
@@ -33,6 +33,7 @@ export default async function PublicProposalPage({ params }: Props) {
     include: {
       user: { select: { name: true, handle: true, image: true } },
       items: { orderBy: { order: "asc" } },
+      addOns: { orderBy: { order: "asc" } },
     },
   });
 
@@ -106,13 +107,29 @@ export default async function PublicProposalPage({ params }: Props) {
               ))}
             </div>
 
-            {/* Total */}
-            <div className="flex justify-between items-center py-5 border-t-2 border-black">
-              <span className="font-bold text-base">Total</span>
-              <span className="font-mono font-extrabold text-2xl">
-                {formatCurrency(total)}
-              </span>
-            </div>
+            {/* Signature Section / Add-Ons */}
+            {isSigned ? (
+              <>
+                <div className="flex justify-between items-center py-5 border-t-2 border-black">
+                  <span className="font-bold text-base">Total Generated</span>
+                  <span className="font-mono font-extrabold text-2xl">
+                    {formatCurrency(total)}
+                  </span>
+                </div>
+                <div className="mt-8 p-6 bg-green-50 rounded-2xl border border-green-200 text-center">
+                  <div className="text-3xl mb-2">✓</div>
+                  <h3 className="font-bold text-green-700 text-lg mb-1">
+                    Proposal Approved & Signed
+                  </h3>
+                  <p className="text-sm text-green-600">
+                    Signed by {proposal.signature} on{" "}
+                    {formatDate(proposal.signedAt!)}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <ProposalSignForm slug={proposal.slug} baseTotal={total} items={proposal.items} addOns={proposal.addOns} />
+            )}
 
             {/* Terms */}
             {proposal.terms && (
@@ -133,21 +150,7 @@ export default async function PublicProposalPage({ params }: Props) {
               </div>
             )}
 
-            {/* Signature Section */}
-            {isSigned ? (
-              <div className="mt-8 p-6 bg-green-50 rounded-2xl border border-green-200 text-center">
-                <div className="text-3xl mb-2">✓</div>
-                <h3 className="font-bold text-green-700 text-lg mb-1">
-                  Proposal Approved & Signed
-                </h3>
-                <p className="text-sm text-green-600">
-                  Signed by {proposal.signature} on{" "}
-                  {formatDate(proposal.signedAt!)}
-                </p>
-              </div>
-            ) : (
-              <ProposalSignForm slug={proposal.slug} />
-            )}
+
 
             {/* Powered by */}
             <div className="text-center mt-8 text-xs text-gray-400">
