@@ -183,7 +183,7 @@ export async function PUT(req: NextRequest) {
         currency: "USD",
       }).format(total / 100);
 
-      await sendEmail({
+      const emailRes = await sendEmail({
         to: proposal.brandEmail,
         fromName: creator.name || undefined,
         replyTo: creator.email,
@@ -196,6 +196,10 @@ export async function PUT(req: NextRequest) {
           proposalUrl
         ),
       });
+
+      if (!emailRes.success) {
+        console.error("Failed to send proposal PUT email:", emailRes.error);
+      }
     }
   }
 
