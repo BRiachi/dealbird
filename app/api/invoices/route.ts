@@ -24,6 +24,8 @@ export async function POST(req: Request) {
   const addOnsTotal = proposal.addOns.reduce((sum, addon) => sum + addon.price, 0);
   const total = baseTotal + addOnsTotal;
 
+  const invoiceCount = await prisma.invoice.count({ where: { userId: session.user.id } });
+
   // Combine base items and selected add-ons into a single flat array for invoice items
   const combinedItems = [
     ...proposal.items.map((item) => ({ name: item.name, price: item.price })),
