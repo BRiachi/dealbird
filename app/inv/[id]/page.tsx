@@ -47,10 +47,10 @@ export default async function PublicInvoicePage({ params, searchParams }: Props)
               </div>
               <span
                 className={`px-4 py-1.5 rounded-full text-xs font-bold ${isPaid
-                    ? "bg-green-50 text-green-700"
-                    : isOverdue
-                      ? "bg-red-50 text-red-700"
-                      : "bg-yellow-50 text-yellow-700"
+                  ? "bg-green-50 text-green-700"
+                  : isOverdue
+                    ? "bg-red-50 text-red-700"
+                    : "bg-yellow-50 text-yellow-700"
                   }`}
               >
                 {isPaid ? "Paid" : isOverdue ? "Overdue" : "Pending"}
@@ -109,6 +109,51 @@ export default async function PublicInvoicePage({ params, searchParams }: Props)
                 </div>
               ))}
             </div>
+
+            {/* Deliverables */}
+            {invoice.deliverables && (invoice.deliverables as any[]).length > 0 && (
+              <div className="mb-8 p-6 bg-gray-50 border border-gray-100 rounded-xl">
+                <h3 className="font-extrabold text-[#C8FF00] tracking-tight uppercase text-xs mb-4 flex items-center gap-2">
+                  {isPaid || justPaid ? "🔓 Unlocked Assets" : "🔒 Locked Assets"}
+                </h3>
+                <div className="space-y-3">
+                  {(invoice.deliverables as any[]).map((file, idx) => (
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-lg border border-black/5 shadow-sm">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-8 h-8 bg-gray-50 rounded flex items-center justify-center shrink-0 text-sm border border-gray-100">
+                          {file.name.endsWith('.mp4') || file.name.endsWith('.mov') ? '🎥' : '📄'}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-sm truncate">{file.name}</div>
+                          <div className="text-[10px] text-gray-400 font-mono">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                        </div>
+                      </div>
+                      {isPaid || justPaid ? (
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                          className="text-xs font-bold text-black border border-black/10 hover:border-black px-4 py-2 rounded-lg transition-colors text-center shrink-0"
+                        >
+                          Download ↓
+                        </a>
+                      ) : (
+                        <button
+                          disabled
+                          className="text-xs font-bold text-gray-400 border border-gray-200 bg-gray-50 px-4 py-2 rounded-lg cursor-not-allowed text-center shrink-0"
+                        >
+                          Locked
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {(!isPaid && !justPaid) && (
+                  <p className="text-xs text-gray-400 mt-4 text-center">These assets will become available for download immediately upon payment.</p>
+                )}
+              </div>
+            )}
 
             {/* Total */}
             <div className="flex justify-between items-center py-5 border-t-2 border-black">

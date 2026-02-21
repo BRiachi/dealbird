@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 
+import { headers } from "next/headers";
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -11,6 +13,10 @@ export default async function DashboardLayout({
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
+
+  const headersList = await headers();
+  const pathname = headersList.get("x-invoke-path") || "";
+  const isLinksPage = pathname === "/dashboard/links" || pathname.startsWith("/dashboard/links/");
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex">
@@ -37,7 +43,13 @@ export default async function DashboardLayout({
             </div>
           </div>
         </nav>
-        <main className="max-w-[1120px] mx-auto px-6 lg:px-10 py-8 ">{children}</main>
+        <main className={
+          isLinksPage
+            ? "w-full h-[calc(100vh-10vh)]" // Adjust as needed to fill remaining space
+            : "max-w-[1120px] mx-auto px-6 lg:px-10 py-8"
+        }>
+          {children}
+        </main>
       </div>
     </div>
   );

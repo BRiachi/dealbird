@@ -280,6 +280,7 @@ model Invoice {
   total     Int           // cents
   dueDate   DateTime
   paidAt    DateTime?
+  deliverables Json? // Array of { name: string, url: string, size: number, key: string }
 
   items InvoiceItem[]
 

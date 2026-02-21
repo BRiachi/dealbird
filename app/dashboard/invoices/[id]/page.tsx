@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import { InvoiceActions } from "@/components/invoice-actions";
+import { InvoiceDeliverablesManager } from "@/components/invoice-deliverables-manager";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
@@ -18,6 +19,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
   if (!invoice) notFound();
 
   const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL}/inv/${invoice.slug}`;
+  const deliverables = invoice.deliverables ? (invoice.deliverables as any[]) : [];
 
   return (
     <div>
@@ -77,10 +79,28 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
           {/* Actions */}
           <InvoiceActions invoiceId={invoice.id} status={invoice.status} invoiceUrl={invoiceUrl} />
 
+          {/* Deliverables Manager */}
+          {invoice.status !== "PAID" && (
+            <InvoiceDeliverablesManager invoiceId={invoice.id} initialDeliverables={deliverables} />
+          )}
+
+          {/* PAID Status */}
           {invoice.status === "PAID" && (
-            <div className="mt-6 p-5 bg-green-50 rounded-xl text-center flex items-center justify-center gap-2.5">
-              <span className="text-xl">✓</span>
-              <span className="font-bold text-green-700">Payment Received</span>
+            <div className="mt-8 border-t border-black/[0.07] pt-8">
+              <h3 className="font-extrabold text-lg mb-4">Locked Deliverables 🔒</h3>
+              <div className="p-5 bg-green-50 rounded-xl text-center flex items-center justify-center gap-2.5 mb-6">
+                <span className="text-xl">✓</span>
+                <span className="font-bold text-green-700">Payment Received. Deliverables Unlocked.</span>
+              </div>
+              {deliverables.length > 0 && (
+                <div className="space-y-3">
+                  {deliverables.map((file, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                      <span className="font-semibold text-sm truncate">{file.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

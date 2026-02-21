@@ -4,6 +4,23 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UploadButton } from "@/app/utils/uploadthing";
 import { AnalyticsChart } from "./AnalyticsChart";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Types matching Prisma Enum
 type ProductType = "URL" | "DIGITAL" | "COACHING" | "COLLECT_EMAIL" | "COURSE" | "MEMBERSHIP";
@@ -55,6 +72,91 @@ interface UserProfile {
     theme: string;
 }
 
+// Sortable Item Component
+function SortableProductItem({ product, isEditing, onEdit }: { product: Product, isEditing: boolean, onEdit: (p: Product) => void }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: product.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 100 : 1,
+        opacity: isDragging ? 0.8 : 1,
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            onClick={() => onEdit(product)}
+            className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group relative shadow-sm ${isEditing ? 'border-black ring-1 ring-black' : 'border-gray-100 hover:border-gray-300'}`}
+        >
+            <div className="flex items-center gap-5">
+                {/* Drag Handle */}
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="cursor-grab hover:bg-gray-100 p-2 rounded-lg text-gray-400 absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-0.5 items-center justify-center shrink-0"
+                    onClick={(e) => e.stopPropagation()} // Prevent opening editor when just dragging
+                >
+                    <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                    <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                    <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                </div>
+
+                {/* Icon / Thumbnail */}
+                <div className="ml-6 w-16 h-16 rounded-xl bg-gray-50 flex items-center justify-center text-3xl shadow-inner scale-100 group-hover:scale-105 transition-transform shrink-0">
+                    {product.type === "URL" ? "🔗" :
+                        product.type === "DIGITAL" ? "📂" :
+                            product.type === "COACHING" ? "📅" :
+                                product.type === "COURSE" ? "🎓" :
+                                    product.type === "MEMBERSHIP" ? "🔒" : "📧"}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border border-gray-100 px-1.5 py-0.5 rounded">
+                            {product.type === "URL" ? "Link" : product.type.replace("_", " ")}
+                        </span>
+                        {product.archived && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Hidden</span>}
+                    </div>
+                    <h3 className="font-bold text-lg leading-tight truncate">{product.title}</h3>
+                    {product.subtitle && <p className="text-sm text-gray-500 truncate">{product.subtitle}</p>}
+                    {/* Discount Price Indicator */}
+                    {product.settings?.discountPrice && product.settings.discountPrice < product.price && (
+                        <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold mt-1 inline-block">SALE</span>
+                    )}
+                </div>
+
+                {/* Stats / Price */}
+                <div className="text-right shrink-0">
+                    {product.price > 0 && (
+                        <div className="font-bold text-lg mb-1 flex flex-col items-end">
+                            {product.settings?.discountPrice && product.settings.discountPrice < product.price ? (
+                                <>
+                                    <span className="text-red-500">${product.settings.discountPrice / 100}</span>
+                                    <span className="text-xs text-gray-400 line-through">${product.price / 100}</span>
+                                </>
+                            ) : (
+                                <span>${product.price / 100}</span>
+                            )}
+                        </div>
+                    )}
+                    <div className="text-xs text-gray-400 font-mono">
+                        {product.sales} sales
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function StorePage() {
     const router = useRouter();
     const [products, setProducts] = useState<Product[]>([]);
@@ -77,17 +179,33 @@ export default function StorePage() {
         fetchData();
     }, []);
 
-    const fetchData = () => {
-        Promise.all([
-            fetch("/api/products").then((res) => res.json()),
-            fetch("/api/user/profile").then((res) => res.json()),
-            fetch("/api/analytics").then((res) => res.json()),
-        ]).then(([productsData, profileData, analyticsData]) => {
-            setProducts(productsData);
+    const fetchData = async () => {
+        try {
+            const [productsRes, profileRes, analyticsRes] = await Promise.all([
+                fetch("/api/products"),
+                fetch("/api/user/profile"),
+                fetch("/api/analytics"),
+            ]);
+
+            if (productsRes.status === 401 || profileRes.status === 401) {
+                router.push("/sign-in");
+                return;
+            }
+
+            const [productsData, profileData, analyticsData] = await Promise.all([
+                productsRes.json().catch(() => []),
+                profileRes.json().catch(() => null),
+                analyticsRes.json().catch(() => null),
+            ]);
+
+            setProducts(productsData || []);
             setProfile(profileData);
             setAnalytics(analyticsData);
+        } catch (error) {
+            console.error("Failed to fetch dashboard data:", error);
+        } finally {
             setLoading(false);
-        });
+        }
     };
 
     const createProduct = async (type: ProductType) => {
@@ -157,6 +275,54 @@ export default function StorePage() {
         });
     };
 
+    // --- Drag and Drop Handlers ---
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5, // 5px movement before drag starts
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const reorderProducts = async (movedProductIds: string[]) => {
+        try {
+            await fetch("/api/products/reorder", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ productIds: movedProductIds }),
+            });
+        } catch (error) {
+            console.error("Failed to reorder products", error);
+        }
+    };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            setProducts((items) => {
+                const oldIndex = items.findIndex(item => item.id === active.id);
+                const newIndex = items.findIndex(item => item.id === over.id);
+
+                const newItems = arrayMove(items, oldIndex, newIndex);
+
+                // Re-calculate the order properties based on the new array placement
+                const updatedItems = newItems.map((item, index) => ({
+                    ...item,
+                    order: index
+                }));
+
+                // Trigger backend save asynchronously
+                reorderProducts(updatedItems.map(i => i.id));
+
+                return updatedItems;
+            });
+        }
+    };
+
     if (loading) return <div className="p-10 text-center text-gray-400">Loading your store...</div>;
 
     const renderEditor = () => {
@@ -165,7 +331,7 @@ export default function StorePage() {
         const isPaid = editingProduct.price > 0 || editingProduct.type === "DIGITAL" || editingProduct.type === "COACHING" || editingProduct.type === "COURSE";
 
         return (
-            <div className="fixed inset-y-0 right-0 lg:right-[400px] w-full max-w-lg bg-white border-l border-r-0 lg:border-r shadow-2xl z-50 transform transition-transform flex flex-col pt-16 lg:pt-0">
+            <div className="hidden lg:flex flex-col w-[450px] bg-white border-r shadow-2xl z-40 relative h-full shrink-0">
                 {/* Header */}
                 <div className="p-4 border-b flex justify-between items-center bg-white shrink-0">
                     <h2 className="font-bold text-lg truncate flex-1">Edit {editingProduct.title}</h2>
@@ -500,6 +666,28 @@ export default function StorePage() {
         );
     };
 
+    const renderMobileEditor = () => {
+        if (!editingProduct) return null;
+
+        const isPaid = editingProduct.price > 0 || editingProduct.type === "DIGITAL" || editingProduct.type === "COACHING" || editingProduct.type === "COURSE";
+
+        return (
+            <div className="lg:hidden fixed inset-y-0 right-0 w-full bg-white shadow-2xl z-50 flex flex-col pt-16">
+                <div className="p-4 border-b flex justify-between items-center bg-white shrink-0">
+                    <h2 className="font-bold text-lg truncate flex-1">Edit {editingProduct.title}</h2>
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => setEditingProduct(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-500 hover:text-black">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center text-gray-500 text-sm">
+                    Please use Desktop to edit product details right now.
+                </div>
+            </div>
+        );
+    };
+
     const renderAnalytics = () => {
         if (!analytics) return null;
         return (
@@ -540,121 +728,127 @@ export default function StorePage() {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden bg-gray-50/50">
-            {/* Left: Main Content */}
-            <div className="flex-1 overflow-y-auto p-6 lg:p-10 pb-32">
-                <div className="max-w-3xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] overflow-hidden bg-white w-full relative">
 
-                    {/* Header */}
+            {/* Left: Main Content OR Editor */}
+            <div className="flex-1 overflow-y-auto bg-gray-50/50 border-r border-gray-200">
+                {editingProduct ? (
+                    /* Show Editor if product selected */
+                    <div className="h-full bg-white flex justify-center">
+                        {renderEditor()}
+                    </div>
+                ) : (
+                    /* Show Main Store Dashboard if no product selected */
+                    <div className="p-6 lg:p-10 pb-32">
+                        <div className="max-w-3xl mx-auto space-y-8">
+
+                            {/* Header */}
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h1 className="text-3xl font-extrabold mb-1">My Store</h1>
+                                    <a href={`/u/${profile?.handle}`} target="_blank" className="text-sm text-gray-500 hover:text-black flex items-center gap-1">
+                                        <span>dealbird.ai/u/{profile?.handle}</span>
+                                        <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-bold">LIVE</span>
+                                    </a>
+                                </div>
+                                <button
+                                    onClick={() => setIsAddModalOpen(true)}
+                                    className="bg-[#C8FF00] hover:bg-[#B8EB00] text-black font-bold px-6 py-3 rounded-xl shadow-sm transition-all transform hover:scale-105"
+                                >
+                                    + Add Product
+                                </button>
+                            </div>
+
+                            {/* Analytics */}
+                            {renderAnalytics()}
+
+                            {/* Products Grid / List */}
+                            <div className="space-y-4">
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <SortableContext
+                                        items={products.map(p => p.id)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        {products.map(product => (
+                                            <SortableProductItem
+                                                key={product.id}
+                                                product={product}
+                                                isEditing={(editingProduct as Product | null)?.id === product.id}
+                                                onEdit={(p: Product) => setEditingProduct(p)}
+                                            />
+                                        ))}
+                                    </SortableContext>
+                                </DndContext>
+                            </div>
+
+                            {/* Profile Settings (Simplified) */}
+                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 mt-8">
+                                <h2 className="font-bold text-lg">Store Appearance</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Handle</label>
+                                        <div className="flex bg-gray-50 rounded-lg border border-gray-200 px-3 py-2">
+                                            <span className="text-gray-400 select-none">dealbird.ai/u/</span>
+                                            <input
+                                                type="text"
+                                                className="bg-transparent focus:outline-none flex-1 font-mono text-sm"
+                                                value={profile?.handle || ""}
+                                                onChange={(e) => updateProfile("handle", e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Bio</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-gray-50 rounded-lg border border-gray-200 px-3 py-2 focus:outline-none text-sm"
+                                            placeholder="Your bio..."
+                                            value={profile?.bio || ""}
+                                            onChange={(e) => updateProfile("bio", e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 pb-32 md:hidden bg-gray-50/50">
+                <div className="space-y-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-extrabold mb-1">My Store</h1>
+                            <h1 className="text-2xl font-extrabold mb-1">My Store</h1>
                             <a href={`/u/${profile?.handle}`} target="_blank" className="text-sm text-gray-500 hover:text-black flex items-center gap-1">
                                 <span>dealbird.ai/u/{profile?.handle}</span>
-                                <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-bold">LIVE</span>
                             </a>
                         </div>
-                        <button
-                            onClick={() => setIsAddModalOpen(true)}
-                            className="bg-[#C8FF00] hover:bg-[#B8EB00] text-black font-bold px-6 py-3 rounded-xl shadow-sm transition-all transform hover:scale-105"
-                        >
-                            + Add Product
+                        <button onClick={() => setIsAddModalOpen(true)} className="bg-[#C8FF00] hover:bg-[#B8EB00] text-black font-bold px-4 py-2 text-sm rounded-xl">
+                            + Product
                         </button>
                     </div>
-
-                    {/* Analytics */}
-                    {renderAnalytics()}
-
-                    {/* Products Grid / List */}
-                    <div className="space-y-4">
-                        {products.map(product => (
-                            <div
-                                key={product.id}
-                                onClick={() => setEditingProduct(product)}
-                                className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group relative hover:shadow-md ${editingProduct?.id === product.id ? 'border-black ring-1 ring-black' : 'border-gray-100 hover:border-gray-300'}`}
-                            >
-                                <div className="flex items-center gap-5">
-                                    {/* Icon / Thumbnail */}
-                                    <div className="w-16 h-16 rounded-xl bg-gray-50 flex items-center justify-center text-3xl shadow-inner scale-100 group-hover:scale-105 transition-transform">
-                                        {product.type === "URL" ? "🔗" :
-                                            product.type === "DIGITAL" ? "📂" :
-                                                product.type === "COACHING" ? "📅" :
-                                                    product.type === "COURSE" ? "🎓" :
-                                                        product.type === "MEMBERSHIP" ? "🔒" : "📧"}
-                                    </div>
-
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border border-gray-100 px-1.5 py-0.5 rounded">
-                                                {product.type === "URL" ? "Link" : product.type.replace("_", " ")}
-                                            </span>
-                                            {product.archived && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Hidden</span>}
-                                        </div>
-                                        <h3 className="font-bold text-lg leading-tight">{product.title}</h3>
-                                        {product.subtitle && <p className="text-sm text-gray-500">{product.subtitle}</p>}
-                                        {/* Discount Price Indicator */}
-                                        {product.settings?.discountPrice && product.settings.discountPrice < product.price && (
-                                            <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold ml-2">SALE</span>
-                                        )}
-                                    </div>
-
-                                    {/* Stats / Price */}
-                                    <div className="text-right">
-                                        {product.price > 0 && (
-                                            <div className="font-bold text-lg mb-1 flex flex-col items-end">
-                                                {product.settings?.discountPrice && product.settings.discountPrice < product.price ? (
-                                                    <>
-                                                        <span className="text-red-500">${product.settings.discountPrice / 100}</span>
-                                                        <span className="text-xs text-gray-400 line-through">${product.price / 100}</span>
-                                                    </>
-                                                ) : (
-                                                    <span>${product.price / 100}</span>
-                                                )}
-                                            </div>
-                                        )}
-                                        <div className="text-xs text-gray-400 font-mono">
-                                            {product.sales} sales
-                                        </div>
-                                    </div>
+                    {/* Render basic list for mobile */}
+                    <div className="space-y-3">
+                        {products.map((product: Product) => (
+                            <div key={product.id} onClick={() => setEditingProduct(product)} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+                                <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center text-xl">
+                                    {product.type === "URL" ? "🔗" : product.type === "DIGITAL" ? "📂" : product.type === "COACHING" ? "📅" : "📦"}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-sm truncate">{product.title}</h3>
+                                    {product.price > 0 && <p className="text-xs text-gray-500">${product.price / 100}</p>}
                                 </div>
                             </div>
                         ))}
                     </div>
-
-                    {/* Profile Settings (Simplified) */}
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 mt-8">
-                        <h2 className="font-bold text-lg">Store Appearance</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Handle</label>
-                                <div className="flex bg-gray-50 rounded-lg border border-gray-200 px-3 py-2">
-                                    <span className="text-gray-400 select-none">dealbird.ai/u/</span>
-                                    <input
-                                        type="text"
-                                        className="bg-transparent focus:outline-none flex-1 font-mono text-sm"
-                                        value={profile?.handle || ""}
-                                        onChange={(e) => updateProfile("handle", e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Bio</label>
-                                <input
-                                    type="text"
-                                    className="w-full bg-gray-50 rounded-lg border border-gray-200 px-3 py-2 focus:outline-none text-sm"
-                                    placeholder="Your bio..."
-                                    value={profile?.bio || ""}
-                                    onChange={(e) => updateProfile("bio", e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
 
-            {/* Right: Preview (Mobile) */}
-            <div className="hidden lg:flex w-[400px] border-l border-gray-200 bg-white items-center justify-center p-8 sticky top-0 h-[calc(100vh-64px)]">
+            {/* Right: Permanent Live Preview (Desktop) */}
+            <div className="hidden md:flex w-[480px] bg-white flex-col items-center justify-center p-8 sticky top-0 h-[calc(100vh-64px)] shrink-0 z-10">
                 <div className="w-[300px] h-[600px] bg-gray-50 rounded-[40px] border-[10px] border-gray-900 shadow-2xl overflow-hidden relative">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-20"></div>
                     <div className="h-full overflow-y-auto hide-scrollbar pt-12 px-4 pb-8 text-center">
@@ -696,43 +890,48 @@ export default function StorePage() {
             </div>
 
             {/* Add Product Modal */}
-            {isAddModalOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h2 className="text-xl font-bold">Add to your Store</h2>
-                            <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-black">✕</button>
-                        </div>
-                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {[
-                                { type: "URL", icon: "🔗", title: "External Link", desc: "Link to website, article, or video" },
-                                { type: "DIGITAL", icon: "📂", title: "Digital Product", desc: "Sell e-books, guides, templates" },
-                                { type: "COACHING", icon: "📅", title: "Coaching Call", desc: "Book 1:1 sessions & paid calls" },
-                                { type: "COURSE", icon: "🎓", title: "Online Course", desc: "Video series and lessons" },
-                                { type: "MEMBERSHIP", icon: "🔒", title: "Membership", desc: "Recurring subscription access" },
-                                { type: "COLLECT_EMAIL", icon: "📧", title: "Collect Emails", desc: "Build your newsletter list" },
-                            ].map((item) => (
-                                <button
-                                    key={item.type}
-                                    onClick={() => createProduct(item.type as ProductType)}
-                                    className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-black hover:bg-gray-50 transition-all text-left"
-                                >
-                                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-2xl">
-                                        {item.icon}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-lg">{item.title}</h3>
-                                        <p className="text-sm text-gray-500">{item.desc}</p>
-                                    </div>
-                                </button>
-                            ))}
+            {
+                isAddModalOpen && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
+                            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                                <h2 className="text-xl font-bold">Add to your Store</h2>
+                                <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-black">✕</button>
+                            </div>
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {[
+                                    { type: "URL", icon: "🔗", title: "External Link", desc: "Link to website, article, or video" },
+                                    { type: "DIGITAL", icon: "📂", title: "Digital Product", desc: "Sell e-books, guides, templates" },
+                                    { type: "COACHING", icon: "📅", title: "Coaching Call", desc: "Book 1:1 sessions & paid calls" },
+                                    { type: "COURSE", icon: "🎓", title: "Online Course", desc: "Video series and lessons" },
+                                    { type: "MEMBERSHIP", icon: "🔒", title: "Membership", desc: "Recurring subscription access" },
+                                    { type: "COLLECT_EMAIL", icon: "📧", title: "Collect Emails", desc: "Build your newsletter list" },
+                                ].map((item) => (
+                                    <button
+                                        key={item.type}
+                                        onClick={() => createProduct(item.type as ProductType)}
+                                        className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-black hover:bg-gray-50 transition-all text-left"
+                                    >
+                                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-2xl">
+                                            {item.icon}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-lg">{item.title}</h3>
+                                            <p className="text-sm text-gray-500">{item.desc}</p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {/* Render Editor Drawer */}
-            {renderEditor()}
-        </div>
+            {/* Mobile Editor Render */}
+            <div className="md:hidden">
+                {renderMobileEditor()}
+            </div>
+
+        </div >
     );
 }

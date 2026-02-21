@@ -32,6 +32,18 @@ export const ourFileRouter = {
             return { uploadedBy: metadata.userId };
         }),
 
+    invoiceDeliverable: f({
+        video: { maxFileSize: "1GB", maxFileCount: 5 },
+        image: { maxFileSize: "32MB", maxFileCount: 10 },
+        pdf: { maxFileSize: "32MB", maxFileCount: 5 },
+        blob: { maxFileSize: "1GB", maxFileCount: 5 } // ZIP files etc.
+    })
+        .middleware(authMiddleware)
+        .onUploadComplete(async ({ metadata, file }) => {
+            console.log("Deliverable uploaded by userId:", metadata.userId, file.url);
+            return { uploadedBy: metadata.userId };
+        }),
+
     avatar: f({
         image: { maxFileSize: "4MB", maxFileCount: 1 },
     })
