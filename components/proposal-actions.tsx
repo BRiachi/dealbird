@@ -17,11 +17,35 @@ export function ProposalActions({
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(proposalUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const sendToBrand = async () => {
+    setSending(true);
+    try {
+      const res = await fetch("/api/proposals/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposalId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSent(true);
+        setTimeout(() => setSent(false), 3000);
+        router.refresh();
+      } else {
+        alert(data.error || "Failed to send");
+      }
+    } catch (e) {
+      alert("Network error");
+    }
+    setSending(false);
   };
 
   const createInvoice = async () => {
@@ -43,6 +67,16 @@ export function ProposalActions({
 
   return (
     <div className="flex flex-col gap-2.5">
+      {status !== "SIGNED" && (
+        <button
+          onClick={sendToBrand}
+          disabled={sending}
+          className="w-full py-2.5 bg-[#0A0A0A] text-white font-bold text-sm rounded-xl hover:bg-gray-800 transition-all disabled:opacity-50"
+        >
+          {sent ? "✓ Email Sent!" : sending ? "Sending..." : status === "SENT" || status === "VIEWED" ? "📧 Resend to Brand" : "📧 Send to Brand"}
+        </button>
+      )}
+
       <button
         onClick={copyLink}
         className="w-full py-2.5 bg-[#C8FF00] text-black font-bold text-sm rounded-xl hover:bg-[#9FCC00] transition-all"
