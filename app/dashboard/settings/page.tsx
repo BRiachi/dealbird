@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import SettingsForm from "@/components/settings-form";
 import { PixelSettings } from "./PixelSettings";
 import { PayoutSettings } from "./PayoutSettings";
+import { SettingsTabs } from "./SettingsTabs";
 import { redirect } from "next/navigation";
 
 export default async function SettingsPage() {
@@ -26,10 +27,10 @@ export default async function SettingsPage() {
       </div>
 
       <div className="grid lg:grid-cols-[1fr_340px] gap-6">
-        <div className="flex flex-col gap-5">
-          {/* Profile */}
+        <SettingsTabs>
+          {/* Tab 1: Profile & Design */}
           <div className="bg-white rounded-2xl border border-black/[0.07] p-6">
-            <h3 className="font-bold mb-4">Profile</h3>
+            <h3 className="font-bold mb-4">Profile & Design</h3>
             <SettingsForm
               initialName={user.name || ""}
               initialHandle={user.handle || ""}
@@ -46,7 +47,7 @@ export default async function SettingsPage() {
             />
           </div>
 
-          {/* Marketing Pixels */}
+          {/* Tab 2: Pixels */}
           <div className="bg-white rounded-2xl border border-black/[0.07] p-6">
             <div className="flex items-center gap-3 mb-1">
               <h3 className="font-bold">Marketing Pixels</h3>
@@ -56,9 +57,9 @@ export default async function SettingsPage() {
             <PixelSettings initialPixels={pixels} />
           </div>
 
-          {/* Payouts */}
+          {/* Tab 3: Payouts */}
           <PayoutSettings user={user} />
-        </div>
+        </SettingsTabs>
 
         {/* Billing sidebar */}
         <div className="flex flex-col gap-4">
