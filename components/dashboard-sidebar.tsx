@@ -13,29 +13,22 @@ const navGroups = [
         ],
     },
     {
-        label: "Sales & Money",
+        label: "Sales",
         items: [
             { label: "Proposals", href: "/dashboard/proposals", icon: "📝" },
             { label: "Invoices", href: "/dashboard/invoices", icon: "🧾" },
-            { label: "Email History", href: "/dashboard/emails", icon: "📧" },
             { label: "Income", href: "/dashboard/income", icon: "💰" },
+            { label: "Email History", href: "/dashboard/emails", icon: "📧" },
         ],
     },
     {
         label: "Store",
         items: [
             { label: "Link-in-Bio", href: "/dashboard/links", icon: "🔗" },
-            { label: "My Bookings", href: "/dashboard/bookings", icon: "📅" },
             { label: "Customers", href: "/dashboard/customers", icon: "👥" },
-            { label: "Affiliates", href: "/dashboard/referrals", icon: "🎁" },
-        ],
-    },
-    {
-        label: "Growth",
-        items: [
+            { label: "Bookings", href: "/dashboard/bookings", icon: "📅" },
             { label: "Analytics", href: "/dashboard/analytics", icon: "📊" },
-            { label: "Audience", href: "/dashboard/audience", icon: "👥" },
-            { label: "Appointments", href: "/dashboard/appointments", icon: "📅" },
+            { label: "Affiliates", href: "/dashboard/referrals", icon: "🎁" },
         ],
     },
 ];
