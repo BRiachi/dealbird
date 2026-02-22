@@ -337,7 +337,7 @@ export default function StorePage() {
         const isPaid = editingProduct.price > 0 || editingProduct.type === "DIGITAL" || editingProduct.type === "COACHING" || editingProduct.type === "COURSE";
 
         return (
-            <div className="hidden md:flex flex-col w-[450px] bg-white border-r shadow-2xl z-40 relative h-full shrink-0">
+            <div className="flex flex-col w-full max-w-[450px] bg-white border-r shadow-2xl z-40 relative h-full">
                 {/* Header */}
                 <div className="p-4 border-b flex justify-between items-center bg-white shrink-0">
                     <h2 className="font-bold text-lg truncate flex-1">Edit {editingProduct.title}</h2>
@@ -740,7 +740,7 @@ export default function StorePage() {
             <div className="flex-1 overflow-y-auto bg-gray-50/50 border-r border-gray-200">
                 {editingProduct ? (
                     /* Show Editor if product selected */
-                    <div className="h-full bg-white flex justify-center">
+                    <div className="h-full bg-white">
                         {renderEditor()}
                     </div>
                 ) : (
