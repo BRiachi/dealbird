@@ -111,12 +111,18 @@ function SortableProductItem({ product, isEditing, onEdit }: { product: Product,
                 </div>
 
                 {/* Icon / Thumbnail */}
-                <div className="ml-6 w-16 h-16 rounded-xl bg-gray-50 flex items-center justify-center text-3xl shadow-inner scale-100 group-hover:scale-105 transition-transform shrink-0">
-                    {product.type === "URL" ? "🔗" :
-                        product.type === "DIGITAL" ? "📂" :
-                            product.type === "COACHING" ? "📅" :
-                                product.type === "COURSE" ? "🎓" :
-                                    product.type === "MEMBERSHIP" ? "🔒" : "📧"}
+                <div className="ml-6 w-16 h-16 rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden shadow-inner scale-100 group-hover:scale-105 transition-transform shrink-0">
+                    {product.image ? (
+                        <img src={product.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                        <span className="text-3xl">
+                            {product.type === "URL" ? "🔗" :
+                                product.type === "DIGITAL" ? "📂" :
+                                    product.type === "COACHING" ? "📅" :
+                                        product.type === "COURSE" ? "🎓" :
+                                            product.type === "MEMBERSHIP" ? "🔒" : "📧"}
+                        </span>
+                    )}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -375,6 +381,34 @@ export default function StorePage() {
 
                     {activeTab === "detail" && (
                         <>
+                            {/* Product Image */}
+                            <div className="space-y-2">
+                                <h3 className="font-bold text-xs uppercase text-gray-400 tracking-wider">Product Image</h3>
+                                {editingProduct.image ? (
+                                    <div className="relative rounded-xl overflow-hidden border border-gray-200">
+                                        <img src={editingProduct.image} alt="" className="w-full h-40 object-cover" />
+                                        <button
+                                            onClick={() => updateProduct(editingProduct.id, { image: "" })}
+                                            className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg hover:bg-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <UploadButton
+                                        endpoint="productImage"
+                                        onClientUploadComplete={(res) => {
+                                            if (res?.[0]) {
+                                                updateProduct(editingProduct.id, { image: res[0].url });
+                                            }
+                                        }}
+                                        onUploadError={(error: Error) => alert(`Upload error: ${error.message}`)}
+                                        appearance={{ button: "bg-black text-white px-4 py-2 rounded-lg text-sm font-bold w-full" }}
+                                    />
+                                )}
+                                <p className="text-[10px] text-gray-400">Recommended: 800x600px. Max 8MB.</p>
+                            </div>
+
                             {/* Basics */}
                             <div className="space-y-4">
                                 <h3 className="font-bold text-xs uppercase text-gray-400 tracking-wider">Product Basics</h3>
@@ -870,8 +904,12 @@ export default function StorePage() {
                         <div className="space-y-3">
                             {products.filter(p => !p.archived).map(p => (
                                 <div key={p.id} className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm text-left flex items-start gap-3">
-                                    <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center text-lg shrink-0">
-                                        {p.type === "URL" ? "🔗" : p.type === "DIGITAL" ? "📂" : p.type === "COACHING" ? "📅" : "📦"}
+                                    <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden text-lg shrink-0">
+                                        {p.image ? (
+                                            <img src={p.image} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            p.type === "URL" ? "🔗" : p.type === "DIGITAL" ? "📂" : p.type === "COACHING" ? "📅" : "📦"
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="font-bold text-sm truncate">{p.title}</div>

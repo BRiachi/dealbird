@@ -30,6 +30,11 @@ interface User {
     theme: string;
     accentColor: string | null;
     font: string;
+    buttonStyle: string;
+    backgroundType: string;
+    backgroundValue: string | null;
+    layout: string;
+    socialLinks: any;
     pixels: any;
     products: Product[];
 }
@@ -49,11 +54,43 @@ const THEMES: Record<string, { bg: string; text: string; card: string; cardBorde
     lavender: { bg: "#FAF5FF", text: "#1A1033", card: "#FFFFFF", cardBorder: "#E9D5FF" },
 };
 
+const SOCIAL_ICONS: Record<string, { svg: string; urlPrefix: string }> = {
+    instagram: {
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>`,
+        urlPrefix: "https://instagram.com/",
+    },
+    twitter: {
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
+        urlPrefix: "https://x.com/",
+    },
+    tiktok: {
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.52a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.6a8.22 8.22 0 0 0 4.76 1.52V6.69h-1z"/></svg>`,
+        urlPrefix: "https://tiktok.com/@",
+    },
+    youtube: {
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+        urlPrefix: "",
+    },
+    linkedin: {
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>`,
+        urlPrefix: "",
+    },
+    website: {
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+        urlPrefix: "",
+    },
+};
+
 export default function StorefrontClient({ user }: StorefrontClientProps) {
     const theme = THEMES[user.theme] || THEMES.simple;
     const accent = user.accentColor || "#000000";
     const fontFamily = user.font || "Inter";
     const fontUrl = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, "+")}&display=swap`;
+    const buttonStyle = user.buttonStyle || "rounded";
+    const layout = user.layout || "grid-2";
+    const socialLinks = user.socialLinks || {};
+    const backgroundType = user.backgroundType || "theme";
+    const backgroundValue = user.backgroundValue || "";
 
     // Determine if accent color is light for text contrast
     const isLightAccent = (() => {
@@ -63,6 +100,36 @@ export default function StorefrontClient({ user }: StorefrontClientProps) {
         const b = parseInt(hex.substring(4, 6), 16);
         return (r * 299 + g * 587 + b * 114) / 1000 > 128;
     })();
+
+    // Background styles
+    const getBackgroundStyle = (): React.CSSProperties => {
+        if (backgroundType === "gradient" && backgroundValue) {
+            const parts = backgroundValue.split(",");
+            const color1 = parts[0] || "#C8FF00";
+            const color2 = parts[1] || "#000000";
+            const direction = parts[2] || "to bottom right";
+            return { background: `linear-gradient(${direction}, ${color1}, ${color2})` };
+        }
+        if (backgroundType === "image" && backgroundValue) {
+            return {
+                backgroundImage: `url(${backgroundValue})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundAttachment: "fixed",
+            };
+        }
+        return { backgroundColor: theme.bg };
+    };
+
+    // Social links helper
+    const getSocialUrl = (platform: string, value: string): string => {
+        if (!value) return "";
+        if (value.startsWith("http")) return value;
+        const prefix = SOCIAL_ICONS[platform]?.urlPrefix;
+        return prefix ? `${prefix}${value}` : value;
+    };
+
+    const hasSocialLinks = Object.values(socialLinks).some((v: any) => v && v.trim());
 
     // Build pixel scripts from user settings
     const pixels = ((user as any).pixels as any) || {};
@@ -96,7 +163,7 @@ export default function StorefrontClient({ user }: StorefrontClientProps) {
             <div
                 className="min-h-screen flex flex-col transition-colors duration-500 pt-0"
                 style={{
-                    backgroundColor: theme.bg,
+                    ...getBackgroundStyle(),
                     color: theme.text,
                     fontFamily: `'${fontFamily}', sans-serif`,
                 }}
@@ -168,10 +235,31 @@ export default function StorefrontClient({ user }: StorefrontClientProps) {
                             </p>
                         )}
 
-                        {/* Social / Contact Simulation */}
-                        <div className="mt-8 flex gap-4 opacity-70">
-                            {/* Placeholders for future social icons */}
-                        </div>
+                        {/* Social Links */}
+                        {hasSocialLinks && (
+                            <div className="mt-8 flex gap-3">
+                                {Object.entries(socialLinks).map(([platform, value]) => {
+                                    if (!value || !(value as string).trim()) return null;
+                                    const icon = SOCIAL_ICONS[platform];
+                                    if (!icon) return null;
+                                    return (
+                                        <a
+                                            key={platform}
+                                            href={getSocialUrl(platform, value as string)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg"
+                                            style={{
+                                                backgroundColor: `${accent}15`,
+                                                color: theme.text,
+                                            }}
+                                            title={platform}
+                                            dangerouslySetInnerHTML={{ __html: icon.svg }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
 
                     {/* Products Grid */}
@@ -181,6 +269,8 @@ export default function StorefrontClient({ user }: StorefrontClientProps) {
                         theme={theme}
                         accentColor={accent}
                         isLightAccent={isLightAccent}
+                        layout={layout}
+                        buttonStyle={buttonStyle}
                     />
 
                     {/* Footer */}

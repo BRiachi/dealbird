@@ -56,6 +56,11 @@ model User {
   theme         String   @default("simple") // simple, dark, colorful, etc.
   accentColor   String   @default("#000000")
   font          String   @default("Inter") // Google Font name
+  buttonStyle   String   @default("rounded") // rounded | sharp | outline | pill
+  backgroundType  String @default("theme")   // theme | gradient | image
+  backgroundValue String?                    // gradient: "#hex1,#hex2,direction" | image: URL
+  layout        String   @default("grid-2")  // list | grid-2 | grid-3
+  socialLinks   Json?    // { instagram?, twitter?, tiktok?, youtube?, linkedin?, website? }
   pixels        Json?    // { meta?: string, tiktok?: string, google?: string, snapchat?: string, pinterest?: string }
   profileViews  Int      @default(0)
 

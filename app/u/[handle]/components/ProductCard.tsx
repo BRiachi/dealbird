@@ -28,9 +28,10 @@ interface Props {
     accentColor: string;
     isLightAccent: boolean;
     onAction: (product: Product) => void;
+    buttonStyle?: string;
 }
 
-export function ProductCard({ product, theme, accentColor, isLightAccent, onAction }: Props) {
+export function ProductCard({ product, theme, accentColor, isLightAccent, onAction, buttonStyle = "rounded" }: Props) {
     const price = product.price;
     const discountPrice = product.settings?.discountPrice;
     const hasDiscount = discountPrice && discountPrice < price;
@@ -122,10 +123,17 @@ export function ProductCard({ product, theme, accentColor, isLightAccent, onActi
                 {/* Call to Action (pushed to bottom) */}
                 <div className="mt-auto">
                     <button
-                        className="relative overflow-hidden flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-sm font-bold transition-all duration-300 group-hover:shadow-lg active:scale-95"
+                        className={cn(
+                            "relative overflow-hidden flex w-full items-center justify-center gap-2 py-4 text-sm font-bold transition-all duration-300 group-hover:shadow-lg active:scale-95",
+                            buttonStyle === "sharp" ? "rounded-none" :
+                            buttonStyle === "pill" ? "rounded-full" :
+                            buttonStyle === "outline" ? "rounded-2xl" :
+                            "rounded-2xl"
+                        )}
                         style={{
-                            backgroundColor: accentColor,
-                            color: btnText,
+                            backgroundColor: buttonStyle === "outline" ? "transparent" : accentColor,
+                            color: buttonStyle === "outline" ? accentColor : btnText,
+                            border: buttonStyle === "outline" ? `2px solid ${accentColor}` : "none",
                         }}
                     >
                         <span className="relative z-10 flex items-center gap-2">

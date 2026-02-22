@@ -51,6 +51,22 @@ export const ourFileRouter = {
         .onUploadComplete(async ({ metadata, file }) => {
             return { uploadedBy: metadata.userId };
         }),
+
+    productImage: f({
+        image: { maxFileSize: "8MB", maxFileCount: 1 },
+    })
+        .middleware(authMiddleware)
+        .onUploadComplete(async ({ metadata, file }) => {
+            return { uploadedBy: metadata.userId };
+        }),
+
+    backgroundImage: f({
+        image: { maxFileSize: "8MB", maxFileCount: 1 },
+    })
+        .middleware(authMiddleware)
+        .onUploadComplete(async ({ metadata, file }) => {
+            return { uploadedBy: metadata.userId };
+        }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

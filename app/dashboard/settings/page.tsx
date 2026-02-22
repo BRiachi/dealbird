@@ -11,7 +11,7 @@ export default async function SettingsPage() {
   if (!session?.user) redirect("/login");
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, email: true, handle: true, bio: true, plan: true, stripeCustomerId: true, pixels: true, stripeConnectId: true, stripeConnectEnabled: true, theme: true, accentColor: true },
+    select: { name: true, email: true, handle: true, bio: true, avatar: true, plan: true, stripeCustomerId: true, pixels: true, stripeConnectId: true, stripeConnectEnabled: true, theme: true, accentColor: true, font: true, buttonStyle: true, backgroundType: true, backgroundValue: true, layout: true, socialLinks: true },
   });
 
   if (!user) return null;
@@ -34,8 +34,15 @@ export default async function SettingsPage() {
               initialName={user.name || ""}
               initialHandle={user.handle || ""}
               initialBio={user.bio || ""}
+              initialAvatar={user.avatar || ""}
               initialTheme={user.theme || "simple"}
               initialAccent={user.accentColor || "#000000"}
+              initialFont={user.font || "Inter"}
+              initialButtonStyle={user.buttonStyle || "rounded"}
+              initialBackgroundType={user.backgroundType || "theme"}
+              initialBackgroundValue={user.backgroundValue || ""}
+              initialLayout={user.layout || "grid-2"}
+              initialSocialLinks={(user.socialLinks as any) || {}}
             />
           </div>
 

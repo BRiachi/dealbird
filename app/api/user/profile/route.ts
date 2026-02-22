@@ -20,6 +20,11 @@ export async function GET() {
             theme: true,
             accentColor: true,
             font: true,
+            buttonStyle: true,
+            backgroundType: true,
+            backgroundValue: true,
+            layout: true,
+            socialLinks: true,
             pixels: true,
             name: true,
         },
@@ -36,7 +41,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { handle, bio, avatar, theme, accentColor, font, pixels, name } = body;
+    const { handle, bio, avatar, theme, accentColor, font, pixels, name,
+            buttonStyle, backgroundType, backgroundValue, layout, socialLinks } = body;
 
     // If updating handle, check uniqueness
     if (handle) {
@@ -63,6 +69,11 @@ export async function PATCH(req: NextRequest) {
             font: font !== undefined ? font : undefined,
             pixels: pixels !== undefined ? pixels : undefined,
             name: name !== undefined ? name : undefined,
+            buttonStyle: buttonStyle !== undefined ? buttonStyle : undefined,
+            backgroundType: backgroundType !== undefined ? backgroundType : undefined,
+            backgroundValue: backgroundValue !== undefined ? backgroundValue : undefined,
+            layout: layout !== undefined ? layout : undefined,
+            socialLinks: socialLinks !== undefined ? socialLinks : undefined,
         },
     });
 

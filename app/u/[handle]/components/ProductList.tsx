@@ -31,6 +31,8 @@ interface Props {
     theme?: ThemeColors;
     accentColor?: string;
     isLightAccent?: boolean;
+    layout?: string;
+    buttonStyle?: string;
 }
 
 export default function ProductList({
@@ -39,6 +41,8 @@ export default function ProductList({
     theme = { bg: "#FFFFFF", text: "#000000", card: "#F9FAFB", cardBorder: "#E5E7EB" },
     accentColor = "#000000",
     isLightAccent = false,
+    layout = "grid-2",
+    buttonStyle = "rounded",
 }: Props) {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [bookingProduct, setBookingProduct] = useState<Product | null>(null);
@@ -73,7 +77,13 @@ export default function ProductList({
 
     return (
         <div className="space-y-12">
-            <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2">
+            <div className={
+                layout === "list"
+                    ? "grid grid-cols-1 gap-6 sm:gap-8"
+                    : layout === "grid-3"
+                        ? "grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3"
+                        : "grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2"
+            }>
                 {products.map((product) => (
                     <ProductCard
                         key={product.id}
@@ -82,6 +92,7 @@ export default function ProductList({
                         accentColor={accentColor}
                         isLightAccent={isLightAccent}
                         onAction={handleAction}
+                        buttonStyle={buttonStyle}
                     />
                 ))}
             </div>
