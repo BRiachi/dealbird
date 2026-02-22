@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
+import { signState } from "@/lib/stripe-connect-state";
 
 // GET — check current Connect status
 export async function GET(req: NextRequest) {
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
     client_id: clientId,
     scope: "read_write",
     redirect_uri: redirectUri,
-    state: session.user.id, // passed back in callback to identify user
+    state: signState(session.user.id), // HMAC-signed to prevent CSRF in callback
   });
 
   const url = `https://connect.stripe.com/oauth/authorize?${params.toString()}`;

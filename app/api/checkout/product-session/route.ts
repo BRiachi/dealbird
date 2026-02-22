@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
         };
 
         const isMembership = product.type === "MEMBERSHIP";
-        const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         const successUrl = `${origin}/orders/success?session_id={CHECKOUT_SESSION_ID}`;
         const cancelUrl = `${origin}/u/${product.user.handle}?canceled=true`;
         const settings = (product.settings as any) || {};
@@ -173,6 +173,6 @@ export async function POST(req: NextRequest) {
 
     } catch (err: any) {
         console.error("[CHECKOUT_ERROR]", err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: "Checkout session creation failed" }, { status: 500 });
     }
 }

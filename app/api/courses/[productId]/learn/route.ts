@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 export async function GET(
     req: NextRequest,
@@ -35,7 +36,7 @@ export async function GET(
         where: { productId },
         include: {
             product: {
-                include: { user: true }
+                include: { user: { select: { handle: true, name: true } } }
             },
             modules: {
                 orderBy: { order: "asc" },
@@ -65,6 +66,7 @@ export async function GET(
             ...mod,
             lessons: mod.lessons.map(lesson => ({
                 ...lesson,
+                body: lesson.body ? sanitizeHtml(lesson.body) : null,
                 completed: lesson.progress.length > 0 ? lesson.progress[0].completed : false,
                 progress: undefined // Remove raw array
             }))

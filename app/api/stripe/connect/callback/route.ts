@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
+import { verifyState } from "@/lib/stripe-connect-state";
 
 // GET /api/stripe/connect/callback — Stripe OAuth redirect
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
-  const state = searchParams.get("state"); // userId passed as state
+  const state = searchParams.get("state");
   const error = searchParams.get("error");
   const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   if (error || !code || !state) {
+    return NextResponse.redirect(`${origin}/dashboard/settings?stripe_connect=error`);
+  }
+
+  // Verify HMAC signature on state to prevent CSRF
+  const userId = verifyState(state);
+  if (!userId) {
+    console.error("[STRIPE_CONNECT_CALLBACK] Invalid state signature:", state);
     return NextResponse.redirect(`${origin}/dashboard/settings?stripe_connect=error`);
   }
 
@@ -30,9 +38,9 @@ export async function GET(req: NextRequest) {
     const account = await stripe.accounts.retrieve(stripeAccountId);
     const isEnabled = !!(account.charges_enabled && account.payouts_enabled);
 
-    // Save to user
+    // Save to user (userId verified via HMAC)
     await prisma.user.update({
-      where: { id: state },
+      where: { id: userId },
       data: {
         stripeConnectId: stripeAccountId,
         stripeConnectEnabled: isEnabled,

@@ -11,17 +11,11 @@ interface Product {
     image: string | null;
     type: string;
     currency: string;
-    userId: string;
     order: number;
-    archived: boolean;
     settings: any;
-    sales: number;
-    createdAt: Date;
-    updatedAt: Date;
 }
 
 interface User {
-    id: string;
     name: string | null;
     handle: string | null;
     image: string | null;
@@ -132,7 +126,21 @@ export default function StorefrontClient({ user }: StorefrontClientProps) {
     const hasSocialLinks = Object.values(socialLinks).some((v: any) => v && v.trim());
 
     // Build pixel scripts from user settings
-    const pixels = ((user as any).pixels as any) || {};
+    // Sanitize pixel IDs to prevent XSS — only allow alphanumeric, dashes, and underscores
+    const sanitizePixelId = (id: string): string | null => {
+        if (!id || typeof id !== "string") return null;
+        const cleaned = id.trim();
+        if (!/^[a-zA-Z0-9_-]+$/.test(cleaned)) return null;
+        return cleaned;
+    };
+    const rawPixels = ((user as any).pixels as any) || {};
+    const pixels = {
+        meta: sanitizePixelId(rawPixels.meta),
+        tiktok: sanitizePixelId(rawPixels.tiktok),
+        google: sanitizePixelId(rawPixels.google),
+        snapchat: sanitizePixelId(rawPixels.snapchat),
+        pinterest: sanitizePixelId(rawPixels.pinterest),
+    };
     const pixelScripts: string[] = [];
 
     if (pixels.meta) {

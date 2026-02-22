@@ -8,15 +8,12 @@ export async function GET() {
     if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
     const userId = session.user.id;
-    console.log("Analytics API - User:", userId, session.user.email);
 
     // 1. Fetch all paid orders
     const orders = await prisma.order.findMany({
         where: { userId, status: "PAID" },
         select: { amount: true, createdAt: true }
     });
-    console.log("Analytics API - Orders Found:", orders.length);
-
     // 2. Fetch all products for view count
     const products = await prisma.product.findMany({
         where: { userId },
@@ -57,7 +54,6 @@ export async function GET() {
         totalRevenue: totalRevenue / 100,
         totalSales,
         totalViews,
-        chartData,
-        debug: { userId, orderCount: orders.length, sessionEmail: session.user.email }
+        chartData
     });
 }

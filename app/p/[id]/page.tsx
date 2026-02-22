@@ -9,14 +9,14 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const proposal = await prisma.proposal.findUnique({
+  const proposal: any = await prisma.proposal.findUnique({
     where: { slug: params.id },
     include: { user: { select: { name: true } }, items: true, addOns: true },
   });
 
   if (!proposal) return { title: "Proposal Not Found" };
 
-  const total = proposal.items.reduce((s, i) => s + i.price, 0);
+  const total = proposal.items.reduce((s: number, i: any) => s + i.price, 0);
 
   return {
     title: `Proposal from ${proposal.user?.name || "Creator"} — ${formatCurrency(total)}`,
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function PublicProposalPage({ params }: Props) {
-  const proposal = await prisma.proposal.findUnique({
+  const proposal: any = await prisma.proposal.findUnique({
     where: { slug: params.id },
     include: {
       user: { select: { name: true, handle: true, image: true } },
@@ -40,16 +40,24 @@ export default async function PublicProposalPage({ params }: Props) {
 
   if (!proposal) notFound();
 
-  const total = proposal.items.reduce((s, i) => s + i.price, 0);
+  const itemsTotal = proposal.items.reduce((s: number, i: any) => s + i.price, 0);
+  const addOnsTotal = (proposal.addOns || []).filter((a: any) => a.isSelected).reduce((s: number, a: any) => s + a.price, 0);
+  const total = itemsTotal + addOnsTotal;
   const isSigned = proposal.status === "SIGNED";
   const isExpired = proposal.status === "EXPIRED" || (proposal.expiresAt && new Date(proposal.expiresAt) < new Date());
 
-  // Track view (fire and forget)
-  fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/proposals/sign`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ slug: params.id }),
-  }).catch(() => { });
+  // Track view directly (no loopback HTTP call)
+  prisma.proposalView.create({
+    data: { proposalId: proposal.id },
+  }).then(() =>
+    prisma.proposal.update({
+      where: { slug: params.id },
+      data: {
+        viewCount: { increment: 1 },
+        ...(proposal.status === "SENT" ? { status: "VIEWED" } : {}),
+      },
+    })
+  ).catch(() => { });
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] py-12 px-4">
@@ -91,7 +99,7 @@ export default async function PublicProposalPage({ params }: Props) {
 
             {/* Items */}
             <div className="space-y-2.5 mb-6">
-              {proposal.items.map((item) => (
+              {proposal.items.map((item: any) => (
                 <div
                   key={item.id}
                   className="flex justify-between items-center p-4 bg-[#FAFAFA] rounded-xl border border-black/[0.03]"
@@ -117,6 +125,18 @@ export default async function PublicProposalPage({ params }: Props) {
             {/* Signature Section / Add-Ons */}
             {isSigned ? (
               <>
+                {/* Show selected add-ons if any */}
+                {proposal.addOns?.filter((a: any) => a.isSelected).length > 0 && (
+                  <div className="space-y-2.5 mb-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Selected Add-Ons</p>
+                    {proposal.addOns.filter((a: any) => a.isSelected).map((addon: any) => (
+                      <div key={addon.id} className="flex justify-between items-center p-3 bg-green-50/50 rounded-xl border border-green-100">
+                        <span className="font-semibold text-sm">{addon.name}</span>
+                        <span className="font-mono font-bold text-sm text-green-600">+{formatCurrency(addon.price)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-5 border-t-2 border-black">
                   <span className="font-bold text-base">Total Generated</span>
                   <span className="font-mono font-extrabold text-2xl">

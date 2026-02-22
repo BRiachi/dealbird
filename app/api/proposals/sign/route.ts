@@ -11,6 +11,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  // Validate payload sizes to prevent abuse
+  if (typeof signature !== "string" || signature.length > 200) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
+  if (signatureData && (typeof signatureData !== "string" || signatureData.length > 200_000)) {
+    return NextResponse.json({ error: "Signature image too large" }, { status: 400 });
+  }
+
   const proposal = await prisma.proposal.findUnique({
     where: { slug },
     include: { addOns: true },
@@ -114,20 +122,28 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(updated);
 }
 
-// POST /api/proposals/view - Track proposal view (public route)
+// PUT /api/proposals/view - Track proposal view (public route)
 export async function PUT(req: NextRequest) {
   const body = await req.json();
-  const { slug, userAgent, referrer } = body;
+  const { slug } = body;
+
+  if (!slug || typeof slug !== "string") {
+    return NextResponse.json({ error: "Missing slug" }, { status: 400 });
+  }
 
   const proposal = await prisma.proposal.findUnique({ where: { slug } });
   if (!proposal) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Use actual request headers instead of caller-supplied values to prevent spoofing
+  const ua = (req.headers.get("user-agent") || "").slice(0, 500);
+  const ref = (req.headers.get("referer") || "").slice(0, 500);
 
   // Record view
   await prisma.proposalView.create({
     data: {
       proposalId: proposal.id,
-      userAgent: userAgent || null,
-      referrer: referrer || null,
+      userAgent: ua || null,
+      referrer: ref || null,
     },
   });
 

@@ -15,7 +15,6 @@ interface Product {
     image?: string | null;
     settings?: any;
     order: number;
-    archived: boolean;
 }
 
 interface ThemeColors {

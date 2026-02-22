@@ -3,9 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail, emailTemplates } from "@/lib/email";
 
 export async function GET(req: NextRequest) {
-  // Validate cron secret
+  // Validate cron secret — reject if CRON_SECRET is not configured or too short
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || cronSecret.length < 16) {
+    console.error("[CRON] CRON_SECRET is missing or too short");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
         if (invoice.status === "PAID") return NextResponse.json({ error: "Already paid" }, { status: 400 });
 
         const stripe = getStripe();
-        const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
         const session = await stripe.checkout.sessions.create({
             mode: "payment",
@@ -49,6 +49,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ url: session.url });
     } catch (err: any) {
         console.error("[INVOICE_PAY_ERROR]", err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: "Payment session creation failed" }, { status: 500 });
     }
 }

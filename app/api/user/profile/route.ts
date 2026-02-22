@@ -58,7 +58,24 @@ export async function PATCH(req: NextRequest) {
         }
     }
 
-    const user = await prisma.user.update({
+    // Sanitize pixel IDs before saving — only allow alphanumeric, dashes, underscores
+    let sanitizedPixels = pixels;
+    if (pixels && typeof pixels === "object") {
+        const cleanPixelId = (id: unknown): string => {
+            if (!id || typeof id !== "string") return "";
+            const cleaned = id.trim();
+            return /^[a-zA-Z0-9_-]+$/.test(cleaned) ? cleaned : "";
+        };
+        sanitizedPixels = {
+            meta: cleanPixelId(pixels.meta),
+            tiktok: cleanPixelId(pixels.tiktok),
+            google: cleanPixelId(pixels.google),
+            snapchat: cleanPixelId(pixels.snapchat),
+            pinterest: cleanPixelId(pixels.pinterest),
+        };
+    }
+
+    await prisma.user.update({
         where: { id: session.user.id },
         data: {
             handle: handle !== undefined ? handle : undefined,
@@ -67,7 +84,7 @@ export async function PATCH(req: NextRequest) {
             theme: theme !== undefined ? theme : undefined,
             accentColor: accentColor !== undefined ? accentColor : undefined,
             font: font !== undefined ? font : undefined,
-            pixels: pixels !== undefined ? pixels : undefined,
+            pixels: sanitizedPixels !== undefined ? sanitizedPixels : undefined,
             name: name !== undefined ? name : undefined,
             buttonStyle: buttonStyle !== undefined ? buttonStyle : undefined,
             backgroundType: backgroundType !== undefined ? backgroundType : undefined,
@@ -77,5 +94,5 @@ export async function PATCH(req: NextRequest) {
         },
     });
 
-    return NextResponse.json(user);
+    return NextResponse.json({ success: true });
 }
