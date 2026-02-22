@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import ProposalSignForm from "./sign-form";
+import CountdownBanner from "./countdown-banner";
 
 interface Props {
   params: { id: string };
@@ -41,6 +42,7 @@ export default async function PublicProposalPage({ params }: Props) {
 
   const total = proposal.items.reduce((s, i) => s + i.price, 0);
   const isSigned = proposal.status === "SIGNED";
+  const isExpired = proposal.status === "EXPIRED" || (proposal.expiresAt && new Date(proposal.expiresAt) < new Date());
 
   // Track view (fire and forget)
   fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/proposals/sign`, {
@@ -107,6 +109,11 @@ export default async function PublicProposalPage({ params }: Props) {
               ))}
             </div>
 
+            {/* Countdown Banner */}
+            {proposal.expiresAt && !isSigned && (
+              <CountdownBanner expiresAt={proposal.expiresAt.toISOString()} />
+            )}
+
             {/* Signature Section / Add-Ons */}
             {isSigned ? (
               <>
@@ -127,6 +134,16 @@ export default async function PublicProposalPage({ params }: Props) {
                   </p>
                 </div>
               </>
+            ) : isExpired ? (
+              <div className="mt-8 p-6 bg-red-50 rounded-2xl border border-red-200 text-center">
+                <div className="text-3xl mb-2">⏰</div>
+                <h3 className="font-bold text-red-700 text-lg mb-1">
+                  This Proposal Has Expired
+                </h3>
+                <p className="text-sm text-red-600">
+                  Please contact the creator for an updated proposal.
+                </p>
+              </div>
             ) : (
               <ProposalSignForm slug={proposal.slug} baseTotal={total} items={proposal.items} addOns={proposal.addOns} />
             )}

@@ -24,6 +24,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Already signed" }, { status: 400 });
   }
 
+  // Block signing expired proposals
+  if (proposal.status === "EXPIRED" || (proposal.expiresAt && new Date(proposal.expiresAt) < new Date())) {
+    // Auto-mark as expired if not already
+    if (proposal.status !== "EXPIRED") {
+      await prisma.proposal.update({ where: { slug }, data: { status: "EXPIRED" } });
+    }
+    return NextResponse.json({ error: "This proposal has expired" }, { status: 400 });
+  }
+
   // Mark selected add-ons in the database
   if (selectedAddOnIds && Array.isArray(selectedAddOnIds) && selectedAddOnIds.length > 0) {
     await prisma.proposalAddOn.updateMany({
@@ -68,6 +77,9 @@ export async function POST(req: NextRequest) {
             proposal.title,
             proposalUrl
           ),
+          userId: proposal.userId,
+          type: "DEAL_SIGNED",
+          proposalId: proposal.id,
         });
 
         // Send to Brand
@@ -83,6 +95,9 @@ export async function POST(req: NextRequest) {
               proposal.title,
               proposalUrl
             ),
+            userId: proposal.userId,
+            type: "DEAL_SIGNED",
+            proposalId: proposal.id,
           });
         }
       }

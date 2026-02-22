@@ -77,6 +77,9 @@ export async function POST(req: Request) {
       invoiceUrl,
       invoice.number
     ),
+    userId: session.user.id,
+    type: "INVOICE_SENT",
+    invoiceId: invoice.id,
   });
 
   return NextResponse.json(invoice);
@@ -131,6 +134,9 @@ export async function PATCH(req: Request) {
         invoiceUrl,
         invoice.number
       ),
+      userId: session.user.id,
+      type: "REMINDER",
+      invoiceId: invoice.id,
     });
 
     if (!emailRes.success) {

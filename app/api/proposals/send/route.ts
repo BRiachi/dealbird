@@ -53,6 +53,9 @@ export async function POST(req: Request) {
       formattedTotal,
       proposalUrl
     ),
+    userId: session.user.id,
+    type: "PROPOSAL_SENT",
+    proposalId: proposal.id,
   });
 
   if (!emailRes.success) {

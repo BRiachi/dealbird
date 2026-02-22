@@ -130,7 +130,7 @@ export default async function PublicInvoicePage({ params, searchParams }: Props)
                       </div>
                       {isPaid || justPaid ? (
                         <a
-                          href={file.url}
+                          href={`/api/invoices/download?slug=${invoice.slug}&key=${encodeURIComponent(file.key)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           download

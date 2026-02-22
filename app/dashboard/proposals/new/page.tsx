@@ -49,6 +49,7 @@ export default function NewProposalPage() {
     brandEmail: "",
     terms: "Net 30",
     notes: "",
+    expiresAt: "",
     items: [] as { name: string; detail: string; price: number }[],
     addOns: [] as { name: string; description: string; price: number }[],
   });
@@ -164,6 +165,10 @@ export default function NewProposalPage() {
                   <option>Due on Receipt</option>
                   <option>50% Upfront</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Valid Until (Optional)</label>
+                <input type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} min={new Date().toISOString().split("T")[0]} className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-[#C8FF00] focus:ring-0 outline-none transition-colors bg-white" />
               </div>
             </div>
           </div>

@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { title, brand, brandEmail, terms, notes, items, addOns, status } = body;
+  const { title, brand, brandEmail, terms, notes, items, addOns, status, expiresAt } = body;
 
   const proposal = await prisma.proposal.create({
     data: {
@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
       notes,
       status: status || "DRAFT",
       sentAt: status === "SENT" ? new Date() : null,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
       items: {
         create: items.map((item: any, idx: number) => ({
           name: item.name,
@@ -142,7 +143,7 @@ export async function PUT(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { id, title, brand, brandEmail, terms, notes, items, addOns, status } = body;
+  const { id, title, brand, brandEmail, terms, notes, items, addOns, status, expiresAt } = body;
 
   // Verify ownership
   const existing = await prisma.proposal.findFirst({
@@ -165,6 +166,7 @@ export async function PUT(req: NextRequest) {
       notes,
       status: status || existing.status,
       sentAt: status === "SENT" && !existing.sentAt ? new Date() : existing.sentAt,
+      expiresAt: expiresAt !== undefined ? (expiresAt ? new Date(expiresAt) : null) : existing.expiresAt,
       items: {
         create: items.map((item: any, idx: number) => ({
           name: item.name,

@@ -218,22 +218,28 @@ export default function StorePage() {
             MEMBERSHIP: "Membership"
         };
 
-        const res = await fetch("/api/products", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                type,
-                title: titles[type] || "New Product",
-                price: type === "URL" || type === "COLLECT_EMAIL" ? 0 : 1000 // Default $10
-            }),
-        });
+        try {
+            const res = await fetch("/api/products", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type,
+                    title: titles[type] || "New Product",
+                    price: type === "URL" || type === "COLLECT_EMAIL" ? 0 : 1000 // Default $10
+                }),
+            });
 
-        if (res.ok) {
-            const product = await res.json();
-            setProducts([...products, product]);
-            setIsAddModalOpen(false);
-            setEditingProduct(product);
-            setActiveTab("detail");
+            if (res.ok) {
+                const product = await res.json();
+                setProducts([...products, product]);
+                setIsAddModalOpen(false);
+                setEditingProduct(product);
+                setActiveTab("detail");
+            } else {
+                console.error("Failed to create product:", res.status);
+            }
+        } catch (error) {
+            console.error("Failed to create product:", error);
         }
     };
 
@@ -331,7 +337,7 @@ export default function StorePage() {
         const isPaid = editingProduct.price > 0 || editingProduct.type === "DIGITAL" || editingProduct.type === "COACHING" || editingProduct.type === "COURSE";
 
         return (
-            <div className="hidden lg:flex flex-col w-[450px] bg-white border-r shadow-2xl z-40 relative h-full shrink-0">
+            <div className="hidden md:flex flex-col w-[450px] bg-white border-r shadow-2xl z-40 relative h-full shrink-0">
                 {/* Header */}
                 <div className="p-4 border-b flex justify-between items-center bg-white shrink-0">
                     <h2 className="font-bold text-lg truncate flex-1">Edit {editingProduct.title}</h2>

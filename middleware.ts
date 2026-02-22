@@ -5,6 +5,9 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
+  // Pass pathname to server components via header
+  response.headers.set("x-pathname", request.nextUrl.pathname);
+
   // Check for 'ref' query param (referral handle)
   const ref = request.nextUrl.searchParams.get("ref");
 

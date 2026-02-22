@@ -15,7 +15,7 @@ export default async function DashboardLayout({
   if (!session?.user) redirect("/login");
 
   const headersList = await headers();
-  const pathname = headersList.get("x-invoke-path") || "";
+  const pathname = headersList.get("x-pathname") || "";
   const isLinksPage = pathname === "/dashboard/links" || pathname.startsWith("/dashboard/links/");
 
   return (

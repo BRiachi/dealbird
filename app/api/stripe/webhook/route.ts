@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
-import { sendEmail, getOrderReceiptEmail, getNewSaleEmail, getBookingConfirmationEmail } from "@/lib/email";
+import { sendEmail, getOrderReceiptEmail, getNewSaleEmail, getBookingConfirmationEmail, emailTemplates } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const stripe = getStripe();
@@ -220,11 +220,53 @@ export async function POST(req: NextRequest) {
       if (session.mode === "payment" && session.metadata?.type === "INVOICE_PAYMENT") {
         const invoiceId = session.metadata.invoiceId;
         if (invoiceId) {
-          await prisma.invoice.update({
+          const invoice = await prisma.invoice.update({
             where: { id: invoiceId },
             data: { status: "PAID", paidAt: new Date() },
+            include: { user: { select: { name: true, email: true } } },
           });
           console.log(`[WEBHOOK] Invoice ${invoiceId} marked as PAID`);
+
+          const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL}/inv/${invoice.slug}`;
+          const creatorName = invoice.user?.name || "Creator";
+          const deliverables = (invoice.deliverables as any[]) || [];
+
+          // Send payment confirmation to brand
+          if (invoice.brandEmail) {
+            await sendEmail({
+              to: invoice.brandEmail,
+              fromName: creatorName,
+              replyTo: invoice.user?.email || undefined,
+              subject: `Payment Received: Invoice ${invoice.number}`,
+              html: emailTemplates.invoicePaymentConfirmation(
+                invoice.brand,
+                creatorName,
+                invoiceUrl,
+                invoice.number,
+                deliverables.length
+              ),
+            });
+          }
+
+          // Notify creator of payment
+          if (invoice.user?.email) {
+            const formattedAmount = new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+            }).format(invoice.total / 100);
+
+            await sendEmail({
+              to: invoice.user.email,
+              subject: `Invoice ${invoice.number} Paid — ${formattedAmount}`,
+              html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2>Payment Received! 💰</h2>
+                  <p><strong>${invoice.brand}</strong> just paid Invoice <strong>${invoice.number}</strong> for <strong>${formattedAmount}</strong>.</p>
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/invoices/${invoice.id}" style="display:inline-block; background:#000; color:#fff; padding:12px 24px; text-decoration:none; border-radius:6px; margin: 16px 0;">View in Dashboard</a>
+                </div>
+              `,
+            });
+          }
         }
         break;
       }

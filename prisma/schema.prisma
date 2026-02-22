@@ -216,6 +216,8 @@ model Proposal {
   signature String?        // signer name
   signatureData String?    @db.Text // base64 signature image
 
+  expiresAt DateTime?
+
   items     ProposalItem[]
   addOns    ProposalAddOn[]
   invoice   Invoice?
@@ -381,4 +383,22 @@ model UserLessonProgress {
   updatedAt DateTime     @updatedAt
 
   @@unique([userId, lessonId])
+}
+
+// ─── EMAIL LOG ───
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String
+  to        String
+  subject   String
+  type      String   // PROPOSAL_SENT, INVOICE_SENT, REMINDER, DEAL_SIGNED, PAYMENT_CONFIRMATION
+  status    String   @default("SENT") // SENT, FAILED
+  resendId  String?  // Resend email ID for tracking
+  error     String?  @db.Text
+
+  // Optional references
+  proposalId String?
+  invoiceId  String?
+
+  sentAt    DateTime @default(now())
 }

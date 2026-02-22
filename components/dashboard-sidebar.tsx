@@ -17,6 +17,7 @@ const navGroups = [
         items: [
             { label: "Proposals", href: "/dashboard/proposals", icon: "📝" },
             { label: "Invoices", href: "/dashboard/invoices", icon: "🧾" },
+            { label: "Email History", href: "/dashboard/emails", icon: "📧" },
             { label: "Income", href: "/dashboard/income", icon: "💰" },
         ],
     },
@@ -49,6 +50,7 @@ function getCurrentPageLabel(pathname: string): string {
         }
     }
     if (pathname.startsWith("/dashboard/settings")) return "Settings";
+    if (pathname.startsWith("/dashboard/emails")) return "Email History";
     return "Dashboard";
 }
 
