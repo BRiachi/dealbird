@@ -102,8 +102,8 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           By signing in, you agree to our{" "}
-          <a href="#" className="underline">Terms</a> and{" "}
-          <a href="#" className="underline">Privacy Policy</a>
+          <Link href="/terms" className="underline">Terms</Link> and{" "}
+          <Link href="/privacy" className="underline">Privacy Policy</Link>
         </p>
       </div>
     </div>

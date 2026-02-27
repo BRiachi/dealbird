@@ -5,6 +5,7 @@ import SettingsForm from "@/components/settings-form";
 import { PixelSettings } from "./PixelSettings";
 import { PayoutSettings } from "./PayoutSettings";
 import { SettingsTabs } from "./SettingsTabs";
+import RedeemCode from "./RedeemCode";
 import { redirect } from "next/navigation";
 
 export default async function SettingsPage() {
@@ -12,7 +13,7 @@ export default async function SettingsPage() {
   if (!session?.user) redirect("/login");
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, email: true, handle: true, bio: true, avatar: true, plan: true, stripeCustomerId: true, pixels: true, stripeConnectId: true, stripeConnectEnabled: true, theme: true, accentColor: true, font: true, buttonStyle: true, backgroundType: true, backgroundValue: true, layout: true, socialLinks: true },
+    select: { name: true, email: true, handle: true, bio: true, avatar: true, plan: true, lifetimePlan: true, stripeCustomerId: true, pixels: true, stripeConnectId: true, stripeConnectEnabled: true, theme: true, accentColor: true, font: true, buttonStyle: true, backgroundType: true, backgroundValue: true, layout: true, socialLinks: true },
   });
 
   if (!user) return null;
@@ -89,6 +90,11 @@ export default async function SettingsPage() {
                 Manage Billing
               </a>
             )}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-black/[0.07] p-5">
+            <h4 className="font-bold text-sm mb-3">Promo Code</h4>
+            <RedeemCode lifetimePlan={user.lifetimePlan} currentPlan={user.plan} />
           </div>
 
           <div className="bg-white rounded-2xl border border-black/[0.07] p-5">
