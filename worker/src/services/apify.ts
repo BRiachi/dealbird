@@ -18,9 +18,9 @@ interface ApifyVideoResult {
   publishedAt?: Date;
 }
 
-// Apify actor IDs per platform
+// Apify actor IDs per platform (verified via Apify API)
 const ACTORS: Record<string, string> = {
-  youtube: "bernardo/youtube-channel-scraper",
+  youtube: "streamers/youtube-channel-scraper",
   tiktok: "clockworks/free-tiktok-scraper",
   instagram: "apify/instagram-post-scraper",
 };
@@ -53,12 +53,17 @@ export async function scrapeChannel(
 
 function buildInput(platform: string, handle: string): Record<string, any> {
   switch (platform) {
-    case "youtube":
+    case "youtube": {
+      // Handle both @handle and full URL formats
+      const channelUrl = handle.startsWith("http")
+        ? handle
+        : `https://www.youtube.com/${handle.startsWith("@") ? handle : "@" + handle}`;
       return {
-        channelUrls: [handle],
+        startUrls: [{ url: channelUrl }],
         maxResults: 5000,
         sortBy: "date",
       };
+    }
     case "tiktok":
       return {
         profiles: [handle.replace("@", "")],
