@@ -87,19 +87,15 @@ function normalizeVideo(platform: string, item: any): ApifyVideoResult {
       return {
         platformVideoId: item.id || item.videoId || extractYouTubeId(item.url),
         title: item.title,
-        description: item.description,
+        description: item.description || item.channelDescription,
         tags: item.tags || item.hashtags || [],
         url: item.url || `https://www.youtube.com/watch?v=${item.id || item.videoId}`,
         thumbnailUrl: item.thumbnailUrl || item.thumbnail,
         viewCount: item.viewCount || item.views || 0,
         likeCount: item.likeCount || item.likes || 0,
         commentCount: item.commentCount || item.comments || 0,
-        duration: item.duration,
-        publishedAt: item.uploadDate
-          ? new Date(item.uploadDate)
-          : item.publishedAt
-          ? new Date(item.publishedAt)
-          : undefined,
+        duration: parseDuration(item.duration),
+        publishedAt: parseDate(item.date || item.uploadDate || item.publishedAt),
       };
 
     case "tiktok":
@@ -113,12 +109,8 @@ function normalizeVideo(platform: string, item: any): ApifyVideoResult {
         viewCount: item.playCount || item.views || 0,
         likeCount: item.diggCount || item.likes || 0,
         commentCount: item.commentCount || item.comments || 0,
-        duration: item.videoMeta?.duration,
-        publishedAt: item.createTime
-          ? new Date(item.createTime * 1000)
-          : item.createTimeISO
-          ? new Date(item.createTimeISO)
-          : undefined,
+        duration: parseDuration(item.videoMeta?.duration || item.duration),
+        publishedAt: parseDate(item.createTime || item.createTimeISO),
       };
 
     case "instagram": {
@@ -139,12 +131,8 @@ function normalizeVideo(platform: string, item: any): ApifyVideoResult {
         viewCount: item.videoViewCount || item.videoPlayCount || item.playCount || item.likesCount || 0,
         likeCount: item.likesCount || item.likes || 0,
         commentCount: item.commentsCount || item.comments || 0,
-        duration: item.videoDuration || item.duration,
-        publishedAt: item.timestamp
-          ? new Date(item.timestamp)
-          : item.takenAt
-          ? new Date(item.takenAt * 1000)
-          : undefined,
+        duration: parseDuration(item.videoDuration || item.duration),
+        publishedAt: parseDate(item.timestamp || item.takenAt),
       };
     }
 
@@ -156,4 +144,39 @@ function normalizeVideo(platform: string, item: any): ApifyVideoResult {
 function extractYouTubeId(url: string): string {
   const match = url?.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return match?.[1] || "unknown";
+}
+
+/** Parse duration string like "11:02" or "1:23:45" to seconds */
+function parseDuration(dur: any): number | undefined {
+  if (typeof dur === "number") return dur;
+  if (typeof dur !== "string" || !dur) return undefined;
+  const parts = dur.split(":").map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return undefined;
+}
+
+/** Parse date - handles ISO strings, timestamps, and relative dates */
+function parseDate(date: any): Date | undefined {
+  if (!date) return undefined;
+  if (date instanceof Date) return date;
+  if (typeof date === "number") return new Date(date > 1e12 ? date : date * 1000);
+  if (typeof date === "string") {
+    // Try ISO parse first
+    const d = new Date(date);
+    if (!isNaN(d.getTime())) return d;
+    // Relative dates like "2 weeks ago", "3 months ago" — estimate
+    const match = date.match(/(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago/i);
+    if (match) {
+      const n = parseInt(match[1]);
+      const unit = match[2].toLowerCase();
+      const now = new Date();
+      const ms: Record<string, number> = {
+        second: 1000, minute: 60000, hour: 3600000,
+        day: 86400000, week: 604800000, month: 2592000000, year: 31536000000,
+      };
+      return new Date(now.getTime() - n * (ms[unit] || 0));
+    }
+  }
+  return undefined;
 }
