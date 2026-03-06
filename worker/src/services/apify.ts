@@ -22,7 +22,7 @@ interface ApifyVideoResult {
 const ACTORS: Record<string, string> = {
   youtube: "bernardo/youtube-channel-scraper",
   tiktok: "clockworks/free-tiktok-scraper",
-  instagram: "apify/instagram-scraper",
+  instagram: "apify/instagram-post-scraper",
 };
 
 /**
@@ -64,12 +64,18 @@ function buildInput(platform: string, handle: string): Record<string, any> {
         profiles: [handle.replace("@", "")],
         resultsPerPage: 5000,
       };
-    case "instagram":
+    case "instagram": {
+      const username = handle.replace("@", "").replace(/\/$/, "");
       return {
-        usernames: [handle.replace("@", "")],
-        resultsType: "posts",
+        directUrls: [
+          `https://www.instagram.com/${username}/`,
+          `https://www.instagram.com/${username}/reels/`,
+        ],
         resultsLimit: 5000,
+        resultsType: "posts",
+        addParentData: true,
       };
+    }
     default:
       throw new Error(`Unsupported platform: ${platform}`);
   }
@@ -115,22 +121,32 @@ function normalizeVideo(platform: string, item: any): ApifyVideoResult {
           : undefined,
       };
 
-    case "instagram":
+    case "instagram": {
+      // Handle all IG post types: photo, video, reel, carousel (sidecar)
+      const shortCode = item.shortCode || item.code || item.id;
+      const caption = item.caption || item.text || item.description || "";
+      // Extract hashtags from caption if not provided
+      const hashtagsFromCaption = caption.match(/#[\w]+/g) || [];
+      const hashtags = item.hashtags || item.tags || hashtagsFromCaption;
+
       return {
-        platformVideoId: item.id || item.shortCode,
-        title: item.caption?.substring(0, 200),
-        description: item.caption,
-        tags: item.hashtags || [],
-        url: item.url || `https://www.instagram.com/p/${item.shortCode}/`,
-        thumbnailUrl: item.displayUrl || item.thumbnailUrl,
-        viewCount: item.videoViewCount || item.likesCount || 0,
-        likeCount: item.likesCount || 0,
-        commentCount: item.commentsCount || 0,
-        duration: item.videoDuration,
+        platformVideoId: shortCode || String(item.id),
+        title: caption.substring(0, 200),
+        description: caption,
+        tags: hashtags.map((h: any) => (typeof h === "string" ? h.replace("#", "") : h.name || h)),
+        url: item.url || item.postUrl || `https://www.instagram.com/p/${shortCode}/`,
+        thumbnailUrl: item.displayUrl || item.thumbnailUrl || item.imageUrl || item.previewUrl,
+        viewCount: item.videoViewCount || item.videoPlayCount || item.playCount || item.likesCount || 0,
+        likeCount: item.likesCount || item.likes || 0,
+        commentCount: item.commentsCount || item.comments || 0,
+        duration: item.videoDuration || item.duration,
         publishedAt: item.timestamp
           ? new Date(item.timestamp)
+          : item.takenAt
+          ? new Date(item.takenAt * 1000)
           : undefined,
       };
+    }
 
     default:
       throw new Error(`Unsupported platform: ${platform}`);

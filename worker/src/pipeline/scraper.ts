@@ -31,11 +31,12 @@ export async function runScraping(
   // Call Apify to scrape all videos
   const videos = await scrapeChannel(platform, handle);
 
+  const contentLabel = platform === "instagram" ? "posts" : "videos";
   await updateProgress(
     scanId,
     "scraping",
     18,
-    `Saving ${videos.length} videos to database...`
+    `Saving ${videos.length} ${contentLabel} to database...`
   );
 
   // Upsert videos into database
@@ -107,7 +108,7 @@ export async function runScraping(
     scanId,
     "scraping",
     25,
-    `Scraped ${savedCount} videos from ${platform}`
+    `Scraped ${savedCount} ${contentLabel} from ${platform}`
   );
 
   return savedCount;
