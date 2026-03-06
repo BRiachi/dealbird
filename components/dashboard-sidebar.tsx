@@ -22,6 +22,13 @@ const navGroups = [
         ],
     },
     {
+        label: "Outreach",
+        items: [
+            { label: "Brand Intel", href: "/dashboard/brand-intel", icon: "🎯" },
+            { label: "My Videos", href: "/dashboard/videos", icon: "🎬" },
+        ],
+    },
+    {
         label: "Store",
         items: [
             { label: "Link-in-Bio", href: "/dashboard/links", icon: "🔗" },
@@ -44,10 +51,20 @@ function getCurrentPageLabel(pathname: string): string {
     }
     if (pathname.startsWith("/dashboard/settings")) return "Settings";
     if (pathname.startsWith("/dashboard/emails")) return "Email History";
+    if (pathname.startsWith("/dashboard/brand-intel")) return "Brand Intel";
+    if (pathname.startsWith("/dashboard/videos")) return "My Videos";
     return "Dashboard";
 }
 
-export function DashboardSidebar() {
+interface DashboardSidebarProps {
+    user: {
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+    };
+}
+
+export function DashboardSidebar({ user }: DashboardSidebarProps) {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
 
@@ -87,6 +104,13 @@ export function DashboardSidebar() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
+                    {user.image ? (
+                        <img src={user.image} alt="" className="w-6 h-6 rounded-full" />
+                    ) : (
+                        <div className="w-6 h-6 bg-[#C8FF00] rounded-full flex items-center justify-center text-[10px] font-bold">
+                            {user.name?.charAt(0) || "U"}
+                        </div>
+                    )}
                     <Link
                         href="/dashboard/proposals/new"
                         className="px-3 py-1.5 bg-[#C8FF00] text-black text-xs font-bold rounded-lg hover:bg-[#b3e600] transition-colors"
@@ -162,13 +186,20 @@ export function DashboardSidebar() {
                     {navItem("/dashboard/settings", "Settings", "⚙️")}
                 </div>
 
-                {/* Footer */}
-                <div className="px-5 py-3 border-t border-gray-100">
-                    <div className="flex items-center gap-2 text-[10px] text-gray-300 font-bold tracking-wider">
-                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        dealbird.ai
+                {/* User profile */}
+                <Link href="/dashboard/settings" onClick={close} className="px-4 py-3 border-t border-gray-100 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                    {user.image ? (
+                        <img src={user.image} alt="" className="w-8 h-8 rounded-full shrink-0" />
+                    ) : (
+                        <div className="w-8 h-8 bg-[#C8FF00] rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                            {user.name?.charAt(0) || "U"}
+                        </div>
+                    )}
+                    <div className="min-w-0">
+                        <div className="text-sm font-semibold text-gray-900 truncate">{user.name || "Account"}</div>
+                        <div className="text-[11px] text-gray-400 truncate">{user.email}</div>
                     </div>
-                </div>
+                </Link>
             </aside>
         </>
     );

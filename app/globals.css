@@ -294,10 +294,104 @@ body {
 
 .hero-actions {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  flex-wrap: wrap;
   margin-bottom: 48px;
   animation: fadeUp 0.7s 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.claim-floater {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 8px;
+  padding-left: 16px;
+  width: 100%;
+  max-width: 480px;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.claim-floater:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.claim-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  margin-right: 12px;
+}
+
+.claim-prefix {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--black);
+  margin-right: 2px;
+}
+
+.claim-input {
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.claim-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.claim-btn {
+  background: #2563EB;
+  /* Blue specifically requested */
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.claim-btn:hover {
+  background: #1D4ED8;
+}
+
+@media (max-width: 600px) {
+  .claim-floater {
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .claim-btn {
+    width: 100%;
+    margin-top: 4px;
+    font-size: 1rem;
+    padding: 14px;
+  }
+
+  .claim-input {
+    width: 100%;
+  }
+}
+
+.hero-actions-alt {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .hero-proof {

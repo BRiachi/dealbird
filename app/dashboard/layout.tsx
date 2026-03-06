@@ -21,7 +21,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex">
       {/* Sidebar */}
-      <DashboardSidebar />
+      <DashboardSidebar user={{ name: session.user.name, email: session.user.email, image: session.user.image }} />
 
       {/* Main content */}
       <div className="flex-1 min-w-0 pt-16 lg:pt-8">

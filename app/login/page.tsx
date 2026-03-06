@@ -1,8 +1,24 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+
+function ErrorBanner() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+  if (!error) return null;
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6 text-center">
+      <p className="text-sm text-red-700 font-medium">
+        {error === "OAuthAccountNotLinked"
+          ? "This email is already registered. Try signing in with your original method."
+          : "Something went wrong. Please try again."}
+      </p>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -38,6 +54,10 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl border border-black/5 p-8 shadow-sm">
           <h1 className="text-xl font-extrabold tracking-tight text-center mb-1">Welcome back</h1>
           <p className="text-sm text-gray-400 text-center mb-8">Sign in to manage your proposals and invoices</p>
+
+          <Suspense>
+            <ErrorBanner />
+          </Suspense>
 
           {/* Google */}
           <button

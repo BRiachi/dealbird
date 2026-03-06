@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
                 sales: { increment: 1 },
                 revenue: { increment: item.amount_total },
               },
-            });
+            }).catch(e => console.error(`[WEBHOOK] Failed to update product stats for ${productId}:`, e));
           }
         }
         break;
@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
           await prisma.product.update({
             where: { id: productId },
             data: { sales: { increment: 1 }, revenue: { increment: subscription.items.data[0].price.unit_amount || 0 } },
-          });
+          }).catch(e => console.error(`[WEBHOOK] Failed to update product stats for ${productId}:`, e));
 
           const seller = await prisma.user.findUnique({ where: { id: sellerId }, select: { email: true } });
           if (buyerEmail !== "unknown") {
@@ -224,7 +224,13 @@ export async function POST(req: NextRequest) {
             where: { id: invoiceId },
             data: { status: "PAID", paidAt: new Date() },
             include: { user: { select: { name: true, email: true } } },
+          }).catch(e => {
+            console.error(`[WEBHOOK] Failed to update invoice ${invoiceId}:`, e);
+            return null;
           });
+
+          if (!invoice) break;
+
           console.log(`[WEBHOOK] Invoice ${invoiceId} marked as PAID`);
 
           const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL}/inv/${invoice.slug}`;
@@ -285,16 +291,18 @@ export async function POST(req: NextRequest) {
               ? "agency"
               : "free";
 
-        await prisma.user.update({
-          where: { id: session.metadata!.userId },
-          data: {
-            stripeCustomerId: subscription.customer as string,
-            stripeSubId: subscription.id,
-            stripePriceId: priceId,
-            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
-            plan,
-          },
-        });
+        if (session.metadata?.userId) {
+          await prisma.user.update({
+            where: { id: session.metadata.userId },
+            data: {
+              stripeCustomerId: subscription.customer as string,
+              stripeSubId: subscription.id,
+              stripePriceId: priceId,
+              stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              plan,
+            },
+          }).catch(e => console.error(`[WEBHOOK] Failed to update user ${session.metadata?.userId}:`, e));
+        }
       }
       break;
     }
@@ -311,7 +319,7 @@ export async function POST(req: NextRequest) {
           data: {
             stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
           },
-        });
+        }).catch(e => console.error(`[WEBHOOK] Failed to update user for subscripton ${subscription.id}:`, e));
       }
       break;
     }
@@ -323,15 +331,17 @@ export async function POST(req: NextRequest) {
         where: { stripeSubId: subscription.id },
         select: { lifetimePlan: true },
       });
-      await prisma.user.update({
-        where: { stripeSubId: subscription.id },
-        data: {
-          plan: existingUser?.lifetimePlan ?? "free",
-          stripeSubId: null,
-          stripePriceId: null,
-          stripeCurrentPeriodEnd: null,
-        },
-      });
+      if (existingUser) {
+        await prisma.user.update({
+          where: { stripeSubId: subscription.id },
+          data: {
+            plan: existingUser.lifetimePlan ?? "free",
+            stripeSubId: null,
+            stripePriceId: null,
+            stripeCurrentPeriodEnd: null,
+          },
+        }).catch(e => console.error(`[WEBHOOK] Failed to update user upon subscription deleted ${subscription.id}:`, e));
+      }
       break;
     }
 

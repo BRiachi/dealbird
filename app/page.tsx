@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
+  const [username, setUsername] = useState("");
+
   useEffect(() => {
     // Scroll-based reveal animations
     const observer = new IntersectionObserver(
@@ -25,6 +27,15 @@ export default function HomePage() {
       window.removeEventListener("scroll", onScroll);
     };
   }, []);
+
+  const handleClaim = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username.trim()) {
+      window.location.href = `/login?username=${encodeURIComponent(username.trim())}`;
+    } else {
+      window.location.href = `/login`;
+    }
+  };
 
   return (
     <div className="landing">
@@ -48,14 +59,29 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero-content">
           <div className="hero-pill"><span className="pill-dot">✓</span> Free for your first 3 deals</div>
-          <h1>Brand deals<br /><em>without</em> the <span className="hl">chaos</span></h1>
+          <h1>All you need to power your <span className="hl">creator growth</span></h1>
           <p className="hero-sub">
             Proposals, e-signatures, and invoices in one link. Send it to the brand.
             They sign. You get paid. No more DM negotiations and PayPal screenshots.
           </p>
           <div className="hero-actions">
-            <Link href="/login" className="btn btn-lime btn-lg">Create Your First Proposal →</Link>
-            <a href="#how" className="btn btn-outline btn-lg">See How It Works</a>
+            <form onSubmit={handleClaim} className="claim-floater">
+              <img src="/logo.png" alt="DealBird" className="claim-logo" />
+              <span className="claim-prefix">dealbird.ai/</span>
+              <input
+                type="text"
+                placeholder="username"
+                className="claim-input"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <button type="submit" className="claim-btn">
+                Claim your username
+              </button>
+            </form>
+            <div className="hero-actions-alt">
+              <Link href="/login" className="btn btn-outline btn-lg">Or Get Started Free</Link>
+            </div>
           </div>
           <div className="hero-proof">
             <img src="/creators.png" alt="Creator avatars" className="hero-proof-avatars" />
