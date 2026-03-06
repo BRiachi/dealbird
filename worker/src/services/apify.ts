@@ -67,13 +67,8 @@ function buildInput(platform: string, handle: string): Record<string, any> {
     case "instagram": {
       const username = handle.replace("@", "").replace(/\/$/, "");
       return {
-        directUrls: [
-          `https://www.instagram.com/${username}/`,
-          `https://www.instagram.com/${username}/reels/`,
-        ],
+        username,
         resultsLimit: 5000,
-        resultsType: "posts",
-        addParentData: true,
       };
     }
     default:
