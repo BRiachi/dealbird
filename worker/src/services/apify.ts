@@ -67,7 +67,7 @@ function buildInput(platform: string, handle: string): Record<string, any> {
     case "instagram": {
       const username = handle.replace("@", "").replace(/\/$/, "");
       return {
-        username,
+        username: [username],
         resultsLimit: 5000,
       };
     }
