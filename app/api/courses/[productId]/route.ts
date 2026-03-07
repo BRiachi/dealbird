@@ -58,7 +58,7 @@ export async function GET(
 
         return NextResponse.json(course);
     } catch (error: any) {
-        console.error("[API] CRITICAL ERROR:", error);
-        return NextResponse.json({ error: `Critical API Error: ${error.message}` }, { status: 500 });
+        console.error("[API] Course error:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

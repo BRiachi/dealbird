@@ -5,6 +5,7 @@ import SettingsForm from "@/components/settings-form";
 import { PixelSettings } from "./PixelSettings";
 import { PayoutSettings } from "./PayoutSettings";
 import { SettingsTabs } from "./SettingsTabs";
+import { ConnectionSettings } from "./ConnectionSettings";
 import RedeemCode from "./RedeemCode";
 import { redirect } from "next/navigation";
 
@@ -58,7 +59,10 @@ export default async function SettingsPage() {
             <PixelSettings initialPixels={pixels} />
           </div>
 
-          {/* Tab 3: Payouts */}
+          {/* Tab 3: Connections */}
+          <ConnectionSettings />
+
+          {/* Tab 4: Payouts */}
           <PayoutSettings user={user} />
         </SettingsTabs>
 

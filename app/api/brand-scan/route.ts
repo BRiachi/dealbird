@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
 const WORKER_URL = process.env.RAILWAY_WORKER_URL;
-const WORKER_SECRET = process.env.RAILWAY_WORKER_SECRET || "";
+const WORKER_SECRET = process.env.RAILWAY_WORKER_SECRET ?? "";
 
 // GET: List all scans for the current user
 export async function GET() {
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     select: { plan: true, lifetimePlan: true },
   });
 
-  const userPlan = user?.lifetimePlan || user?.plan || "free";
+  const userPlan = (user?.lifetimePlan || user?.plan || "free").toLowerCase();
 
   // Count scans this month
   const startOfMonth = new Date();
@@ -97,14 +97,16 @@ export async function POST(req: Request) {
 
   const scanLimits: Record<string, number> = {
     free: 1,
-    pro: 3,
+    pro: 5,
     agency: 999,
   };
 
-  if (scansThisMonth >= (scanLimits[userPlan] || 1)) {
+  const limit = scanLimits[userPlan] ?? scanLimits["free"];
+
+  if (scansThisMonth >= limit) {
     return NextResponse.json(
       {
-        error: `You've used all ${scanLimits[userPlan]} scans for this month. Upgrade your plan for more.`,
+        error: `You've used all ${limit} scans for this month. Upgrade your plan for more.`,
       },
       { status: 403 }
     );
@@ -121,6 +123,10 @@ export async function POST(req: Request) {
   });
 
   // Sign the request to the worker
+  if (!WORKER_URL || !WORKER_SECRET) {
+    console.error("[brand-scan] RAILWAY_WORKER_URL or RAILWAY_WORKER_SECRET not configured");
+    return NextResponse.json({ scan });
+  }
   const payload = JSON.stringify({ scanId: scan.id });
   const signature = crypto
     .createHmac("sha256", WORKER_SECRET)

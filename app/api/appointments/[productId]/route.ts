@@ -29,7 +29,7 @@ export async function GET(
         return NextResponse.json(product.appointmentProfile || null);
     } catch (error: any) {
         console.error("[API] Error fetching appointment profile:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
 
@@ -78,6 +78,6 @@ export async function POST(
         return NextResponse.json(profile);
     } catch (error: any) {
         console.error("[API] Error updating appointment profile:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

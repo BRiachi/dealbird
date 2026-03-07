@@ -40,7 +40,7 @@ export async function generateOutreachEmail(opts: {
   const prompt = `Write a cold outreach email from a content creator to a brand's influencer marketing team.
 
 CREATOR INFO:
-- Name: ${opts.creatorName}
+- Name: ${opts.creatorName} (use this EXACT name — never use "[Your Name]" or any placeholder)
 - Platform: ${opts.platform}
 - Total videos: ${opts.videoCount}
 - Total views: ${opts.totalViews.toLocaleString()}
@@ -50,33 +50,35 @@ BRAND INFO:
 - Brand: ${opts.brandName}
 - Industry: ${opts.industry}
 - Why this brand: ${opts.matchReason}
-- Their recent campaigns: ${opts.recentCampaigns || "Not available"}
-- Estimated deal sizes: ${opts.avgDealSize || "Unknown"}
+- Their recent campaigns: ${opts.recentCampaigns || "No campaign data available — skip this section entirely"}
+- Estimated deal sizes: ${opts.avgDealSize || "Do not mention deal sizes"}
 
-CREATOR'S RELEVANT VIDEOS (these are REAL, VERIFIED URLs — use them exactly as written):
+CREATOR'S RELEVANT VIDEOS (these are REAL, VERIFIED URLs — copy-paste them EXACTLY):
 ${videoList}
 
-RULES:
-- Write a professional, warm, confident email
-- Reference 2-3 specific videos by embedding their EXACT URLs from above
-- Reference the brand's recent campaign work if available
-- Position the creator as a strategic fit, not just asking for free stuff
-- Include a clear CTA (book a call, reply with rates, etc.)
-- Subject line should be compelling and specific
-- Keep body under 200 words
-- DO NOT invent, modify, or guess any URLs — use ONLY what's provided above
+ABSOLUTE RULES — VIOLATION = FAILURE:
+1. NEVER use brackets [], parentheses (), curly braces {}, or any placeholder syntax like [Your Name], (link to video), {Brand}, [insert X], etc.
+2. NEVER write "insert", "add", "include", "your", or "replace" as instructions to the reader — this email must be 100% READY TO SEND as-is
+3. Use "${opts.creatorName}" as the sender name — it is already filled in for you
+4. Embed 2-3 video URLs from the list above EXACTLY as written — copy the full URL character-for-character
+5. If campaign data says "No campaign data available", do NOT mention their campaigns at all — focus on the creator's content fit instead
+6. If deal size says "Do not mention deal sizes", do NOT reference pricing or rates
+7. Write a professional, warm, confident email under 200 words
+8. Include a clear CTA (book a call, discuss partnership, etc.)
+9. Subject line: specific and compelling, NOT generic like "Collaboration Opportunity"
+10. Sign off with just "${opts.creatorName}" — no fake email, no fake phone number, no placeholder contact info
 
 Return ONLY valid JSON (no markdown, no code fences):
 {
   "subject": "string",
-  "body": "string (with URLs embedded naturally in the text)",
+  "body": "string (complete, ready-to-send email with real URLs embedded naturally)",
   "videoLinks": [{"url": "exact url from list above", "title": "string", "relevance": "why this video matters"}]
 }`;
 
   const response = await client.chat.completions.create({
     model: "gpt-4o",
     messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
+    temperature: 0.4,
     response_format: { type: "json_object" },
   });
 

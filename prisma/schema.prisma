@@ -103,10 +103,15 @@ model User {
   promoClaims  PromoCodeClaim[]
 
   // Brand Outreach Intelligence
-  socialConnections SocialConnection[]
-  videos            Video[]
-  brands            Brand[]
-  brandScans        BrandScan[]
+  socialConnections  SocialConnection[]
+  videos             Video[]
+  brands             Brand[]
+  brandScans         BrandScan[]
+
+  // Outreach Campaigns
+  emailAccounts      EmailAccount[]
+  outreachCampaigns  OutreachCampaign[]
+  outreachEmails     OutreachEmail[]
 }
 
 enum ProductType {
@@ -518,6 +523,7 @@ model Brand {
   updatedAt        DateTime  @updatedAt
 
   videoMentions    BrandVideoMention[]
+  outreachEmails   OutreachEmail[]
 
   @@index([userId, scanId])
 }
@@ -550,6 +556,104 @@ model BrandScan {
   createdAt   DateTime  @default(now())
 
   brands      Brand[]
+  campaigns   OutreachCampaign[]
 
   @@index([userId])
+}
+
+// ─── OUTREACH CAMPAIGNS ───
+
+model EmailAccount {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       String    // "gmail" | "custom_smtp"
+  email          String
+  accessToken    String    @db.Text
+  refreshToken   String?   @db.Text
+  tokenExpiry    DateTime?
+  smtpHost       String?
+  smtpPort       Int?
+  smtpUser       String?
+  smtpPass       String?   @db.Text
+  isDefault      Boolean   @default(false)
+  dailySendLimit Int       @default(25)
+  sentToday      Int       @default(0)
+  lastResetAt    DateTime  @default(now())
+  gmailHistoryId String?   // Last Gmail history ID for incremental reply polling
+  needsReauth    Boolean   @default(false) // True if account needs scope upgrade
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  sentEmails     OutreachEmail[]
+
+  @@unique([userId, email])
+}
+
+model OutreachCampaign {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  instructions  String?    @db.Text
+  status        String     @default("draft") // draft, active, paused, completed
+
+  // Sequence config
+  emailSteps    Int        @default(3)
+  linkedinSteps Int        @default(0)
+  delayDays     Int        @default(3) // days between sequence steps
+
+  // Targeting
+  scanId        String?
+  scan          BrandScan? @relation(fields: [scanId], references: [id])
+
+  // Stats
+  totalBrands   Int        @default(0)
+  sentCount     Int        @default(0)
+  openCount     Int        @default(0)
+  replyCount    Int        @default(0)
+
+  emails        OutreachEmail[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model OutreachEmail {
+  id              String            @id @default(cuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaignId      String
+  campaign        OutreachCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  brandId         String
+  brand           Brand             @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  emailAccountId  String?
+  emailAccount    EmailAccount?     @relation(fields: [emailAccountId], references: [id])
+
+  toEmail         String?
+  subject         String
+  body            String            @db.Text
+  stepNumber      Int               @default(1)
+  channel         String            @default("email") // "email" | "linkedin"
+
+  status          String            @default("draft") // draft, scheduled, sent, opened, replied, bounced
+  sentAt          DateTime?
+  openedAt        DateTime?
+  repliedAt       DateTime?
+  scheduledFor    DateTime?
+
+  trackingId      String?           @unique @default(cuid())
+  openCount       Int               @default(0)
+
+  gmailMessageId  String?           // Gmail API message ID
+  gmailThreadId   String?           // Gmail API thread ID (for reply detection)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([campaignId, brandId])
+  @@index([status, scheduledFor])
+  @@index([gmailThreadId])
+  @@index([emailAccountId, status])
 }

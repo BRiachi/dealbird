@@ -80,9 +80,13 @@ export async function runEmailGeneration(
             relevantVideos,
           });
 
+          // Strip any remaining placeholder text like [Your Name], (link to video), {Brand}
+          const strippedBody = stripPlaceholders(email.body);
+          const strippedSubject = stripPlaceholders(email.subject);
+
           // CRITICAL: Validate all links in the email body
           const { cleanedBody, strippedCount } = await validateEmailLinks(
-            email.body,
+            strippedBody,
             userId
           );
           totalStripped += strippedCount;
@@ -99,7 +103,7 @@ export async function runEmailGeneration(
             where: { id: brand.id },
             data: {
               outreachEmail: {
-                subject: email.subject,
+                subject: strippedSubject,
                 body: cleanedBody,
                 videoLinks: validatedVideoLinks,
               },
@@ -139,4 +143,21 @@ export async function runEmailGeneration(
     90,
     `All ${completed} outreach emails generated`
   );
+}
+
+/**
+ * Strip placeholder text that LLMs sometimes inject.
+ * Catches patterns like [Your Name], (link to video), {Brand Name}, etc.
+ */
+function stripPlaceholders(text: string): string {
+  return text
+    // Remove [bracketed placeholders] like [Your Name], [Insert Link], [Brand]
+    .replace(/\[(?:your|insert|add|replace|brand|creator|link|video|name|email|phone|website|url)[^\]]*\]/gi, "")
+    // Remove (parenthesized instructions) like (link to video), (insert name here)
+    .replace(/\((?:link to|insert|add|replace|your|include)[^)]*\)/gi, "")
+    // Remove {curly brace placeholders} like {Brand Name}, {Your Name}
+    .replace(/\{(?:your|brand|creator|name|email|link|video)[^}]*\}/gi, "")
+    // Clean up double spaces left behind
+    .replace(/  +/g, " ")
+    .trim();
 }

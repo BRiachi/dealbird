@@ -70,6 +70,7 @@ export async function GET(req: Request) {
       platforms: true,
       confidence: true,
       matchReason: true,
+      outreachEmail: true,
       status: true,
       isFreeTier: true,
       _count: {

@@ -25,6 +25,7 @@ const navGroups = [
         label: "Outreach",
         items: [
             { label: "Brand Intel", href: "/dashboard/brand-intel", icon: "🎯" },
+            { label: "Campaigns", href: "/dashboard/campaigns", icon: "📬" },
             { label: "My Videos", href: "/dashboard/videos", icon: "🎬" },
         ],
     },
@@ -52,6 +53,7 @@ function getCurrentPageLabel(pathname: string): string {
     if (pathname.startsWith("/dashboard/settings")) return "Settings";
     if (pathname.startsWith("/dashboard/emails")) return "Email History";
     if (pathname.startsWith("/dashboard/brand-intel")) return "Brand Intel";
+    if (pathname.startsWith("/dashboard/campaigns")) return "Campaigns";
     if (pathname.startsWith("/dashboard/videos")) return "My Videos";
     return "Dashboard";
 }

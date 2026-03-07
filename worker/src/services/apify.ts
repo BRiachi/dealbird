@@ -60,20 +60,20 @@ function buildInput(platform: string, handle: string): Record<string, any> {
         : `https://www.youtube.com/${handle.startsWith("@") ? handle : "@" + handle}`;
       return {
         startUrls: [{ url: channelUrl }],
-        maxResults: 5000,
+        maxResults: 10,
         sortBy: "date",
       };
     }
     case "tiktok":
       return {
         profiles: [handle.replace("@", "")],
-        resultsPerPage: 5000,
+        resultsPerPage: 10,
       };
     case "instagram": {
       const username = handle.replace("@", "").replace(/\/$/, "");
       return {
         username: [username],
-        resultsLimit: 5000,
+        resultsLimit: 10,
       };
     }
     default:

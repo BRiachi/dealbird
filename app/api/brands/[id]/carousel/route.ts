@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
 const WORKER_URL = process.env.RAILWAY_WORKER_URL;
-const WORKER_SECRET = process.env.RAILWAY_WORKER_SECRET || "";
+const WORKER_SECRET = process.env.RAILWAY_WORKER_SECRET ?? "";
 
 // GET: Get existing carousel slides
 export async function GET(

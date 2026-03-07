@@ -5,10 +5,11 @@ import { useState } from "react";
 const TABS = [
   { key: "profile", label: "Profile & Design" },
   { key: "pixels", label: "Pixels" },
+  { key: "connections", label: "Connections" },
   { key: "payouts", label: "Payouts" },
 ];
 
-export function SettingsTabs({ children }: { children: [React.ReactNode, React.ReactNode, React.ReactNode] }) {
+export function SettingsTabs({ children }: { children: [React.ReactNode, React.ReactNode, React.ReactNode, React.ReactNode] }) {
   const [active, setActive] = useState("profile");
 
   return (
@@ -31,7 +32,8 @@ export function SettingsTabs({ children }: { children: [React.ReactNode, React.R
 
       {active === "profile" && children[0]}
       {active === "pixels" && children[1]}
-      {active === "payouts" && children[2]}
+      {active === "connections" && children[2]}
+      {active === "payouts" && children[3]}
     </div>
   );
 }
