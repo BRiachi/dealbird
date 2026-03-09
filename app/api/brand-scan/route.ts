@@ -98,7 +98,7 @@ export async function POST(req: Request) {
   const scanLimits: Record<string, number> = {
     free: 1,
     pro: 5,
-    agency: 999,
+    agency: 20,
   };
 
   const limit = scanLimits[userPlan] ?? scanLimits["free"];
