@@ -24,9 +24,9 @@ export default async function DashboardLayout({
       <DashboardSidebar user={{ name: session.user.name, email: session.user.email, image: session.user.image }} />
 
       {/* Main content */}
-      <div className="flex-1 min-w-0 pt-16 lg:pt-8">
+      <div className="flex-1 min-w-0 pt-16 md:pt-8">
         {/* Top bar — hidden on mobile (sidebar handles it) */}
-        <nav className="hidden lg:flex sticky top-8 z-40 h-10 px-8 items-center justify-end">
+        <nav className="hidden md:flex sticky top-8 z-40 h-10 px-8 items-center justify-end">
           <div className="flex items-center gap-4">
             <Link href="/dashboard/proposals/new" className="px-4 py-2 bg-[#C8FF00] text-black text-sm font-bold rounded-lg hover:bg-[#9FCC00] transition-all">
               + New Proposal
@@ -46,7 +46,7 @@ export default async function DashboardLayout({
         <main className={
           isLinksPage
             ? "w-full h-[calc(100vh-10vh)]" // Adjust as needed to fill remaining space
-            : "max-w-[1120px] mx-auto px-6 lg:px-10 py-8"
+            : "max-w-[1120px] mx-auto px-6 md:px-10 py-8"
         }>
           {children}
         </main>

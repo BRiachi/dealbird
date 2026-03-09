@@ -97,7 +97,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     return (
         <>
             {/* ── Mobile Top Bar ── */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-[60]">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-[60]">
                 <div className="flex items-center gap-3 min-w-0">
                     <Link href="/dashboard" className="shrink-0">
                         <img src="/logo.png" alt="DealBird" className="w-8 h-8 rounded-lg -rotate-[5deg]" />
@@ -132,7 +132,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
             {/* ── Backdrop ── */}
             {isOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 z-[55] bg-black/50"
+                    className="md:hidden fixed inset-0 z-[55] bg-black/50"
                     onClick={close}
                 />
             )}
@@ -144,20 +144,20 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                     shadow-2xl transition-transform duration-300 ease-out
                     w-[270px]
                     ${isOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full pointer-events-none"}
-                    lg:translate-x-0 lg:pointer-events-auto lg:sticky lg:top-0 lg:h-screen lg:z-auto lg:w-[220px] lg:shadow-none shrink-0
+                    md:translate-x-0 md:pointer-events-auto md:sticky md:top-0 md:h-screen md:z-auto md:w-[220px] md:shadow-none shrink-0
                 `}
             >
                 {/* Logo (Desktop only) */}
                 <Link
                     href="/dashboard"
-                    className="hidden lg:flex pt-8 pb-4 px-6 items-center gap-2.5 border-b border-gray-100 shrink-0"
+                    className="hidden md:flex pt-8 pb-4 px-6 items-center gap-2.5 border-b border-gray-100 shrink-0"
                 >
                     <img src="/logo.png" alt="DealBird" className="w-7 h-7 rounded-lg -rotate-[5deg]" />
                     <span className="font-extrabold text-base tracking-tight">DealBird</span>
                 </Link>
 
                 {/* Mobile — close button row */}
-                <div className="lg:hidden flex items-center justify-between px-4 pt-3 pb-1">
+                <div className="md:hidden flex items-center justify-between px-4 pt-3 pb-1">
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Menu</span>
                     <button
                         onClick={close}
