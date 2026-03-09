@@ -91,6 +91,14 @@ export async function handleGmailCallback(code: string, userId: string) {
 
   const existingCount = await prisma.emailAccount.count({ where: { userId } });
 
+  // Check if this is a new account (not re-auth) and enforce 3 Gmail limit
+  const existingAccount = await prisma.emailAccount.findUnique({
+    where: { userId_email: { userId, email } },
+  });
+  if (!existingAccount && existingCount >= 3) {
+    throw new Error("You can connect up to 3 Gmail accounts. Remove one to add another.");
+  }
+
   await prisma.emailAccount.upsert({
     where: { userId_email: { userId, email } },
     create: {

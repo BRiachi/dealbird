@@ -151,28 +151,34 @@ export function ConnectionSettings() {
         ))}
 
         {/* ── Add Buttons ── */}
-        <div className="flex gap-2">
-          <button
-            onClick={connectGmail}
-            disabled={!!loading}
-            className="flex-1 py-2.5 bg-white border-2 border-gray-200 font-bold text-sm rounded-xl hover:border-black transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M22 6l-10 7L2 6V4l10 7 10-7v2z" fill="#EA4335"/>
-              <rect x="2" y="4" width="20" height="16" rx="2" stroke="#EA4335" strokeWidth="1.5" fill="none"/>
-            </svg>
-            {loading === "gmail" ? "Connecting..." : "+ Connect Gmail"}
-          </button>
-          <button
-            onClick={() => setShowSmtp(!showSmtp)}
-            className="flex-1 py-2.5 bg-white border-2 border-gray-200 font-bold text-sm rounded-xl hover:border-black transition-all flex items-center justify-center gap-2"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#3B82F6">
-              <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-            </svg>
-            + Custom SMTP
-          </button>
-        </div>
+        {accounts.length < 3 ? (
+          <div className="flex gap-2">
+            <button
+              onClick={connectGmail}
+              disabled={!!loading}
+              className="flex-1 py-2.5 bg-white border-2 border-gray-200 font-bold text-sm rounded-xl hover:border-black transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M22 6l-10 7L2 6V4l10 7 10-7v2z" fill="#EA4335"/>
+                <rect x="2" y="4" width="20" height="16" rx="2" stroke="#EA4335" strokeWidth="1.5" fill="none"/>
+              </svg>
+              {loading === "gmail" ? "Connecting..." : "+ Connect Gmail"}
+            </button>
+            <button
+              onClick={() => setShowSmtp(!showSmtp)}
+              className="flex-1 py-2.5 bg-white border-2 border-gray-200 font-bold text-sm rounded-xl hover:border-black transition-all flex items-center justify-center gap-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#3B82F6">
+                <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+              </svg>
+              + Custom SMTP
+            </button>
+          </div>
+        ) : (
+          <div className="text-center py-2 text-xs font-bold text-gray-400 bg-gray-50 rounded-xl">
+            Maximum 3 accounts connected
+          </div>
+        )}
 
         {/* ── SMTP Form ── */}
         {showSmtp && (
@@ -250,7 +256,7 @@ export function ConnectionSettings() {
         </div>
 
         <p className="text-xs text-gray-400 text-center">
-          Each mailbox can send up to 25 emails/day. Connect multiple accounts to increase daily volume.
+          Connect up to 3 accounts ({accounts.length}/3). Each mailbox can send up to 25 emails/day.
         </p>
       </div>
     </div>

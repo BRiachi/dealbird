@@ -57,6 +57,13 @@ export async function POST(req: NextRequest) {
     where: { userId: session.user.id },
   });
 
+  if (existingCount >= 3) {
+    return NextResponse.json(
+      { error: "You can connect up to 3 email accounts. Remove one to add another." },
+      { status: 400 }
+    );
+  }
+
   const account = await prisma.emailAccount.create({
     data: {
       userId: session.user.id,
