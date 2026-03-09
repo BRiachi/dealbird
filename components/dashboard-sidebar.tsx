@@ -97,7 +97,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     return (
         <>
             {/* ── Mobile Top Bar ── */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-[60]">
+            <div className="mobile-topbar fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-[60]">
                 <div className="flex items-center gap-3 min-w-0">
                     <Link href="/dashboard" className="shrink-0">
                         <img src="/logo.png" alt="DealBird" className="w-8 h-8 rounded-lg -rotate-[5deg]" />

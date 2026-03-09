@@ -1499,3 +1499,10 @@ button {
     font-family: "Space Mono", monospace;
   }
 }
+
+/* Hide mobile top bar on desktop (768px+) */
+@media (min-width: 768px) {
+  .mobile-topbar {
+    display: none !important;
+  }
+}
