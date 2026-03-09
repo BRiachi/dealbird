@@ -1500,9 +1500,9 @@ button {
   }
 }
 
-/* Hide mobile top bar on desktop (768px+) */
+/* Hide hamburger menu button on desktop (768px+) */
 @media (min-width: 768px) {
-  .mobile-topbar {
+  .mobile-burger {
     display: none !important;
   }
 }

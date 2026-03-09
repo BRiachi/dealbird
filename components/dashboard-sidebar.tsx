@@ -97,7 +97,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     return (
         <>
             {/* ── Mobile Top Bar ── */}
-            <div className="mobile-topbar fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-[60]">
+            <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-[60]">
                 <div className="flex items-center gap-3 min-w-0">
                     <Link href="/dashboard" className="shrink-0">
                         <img src="/logo.png" alt="DealBird" className="w-8 h-8 rounded-lg -rotate-[5deg]" />
@@ -121,7 +121,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                     </Link>
                     <button
                         onClick={() => setIsOpen(!isOpen)}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                        className="mobile-burger w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
                         aria-label={isOpen ? "Close menu" : "Open menu"}
                     >
                         {isOpen ? <X size={18} strokeWidth={2.5} /> : <Menu size={18} strokeWidth={2.5} />}
